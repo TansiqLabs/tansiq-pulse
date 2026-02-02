@@ -43,6 +43,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { formatCurrency } from '@/lib/utils'
+import { useToast } from '@/components/ui/toast'
 import type { Service } from '@/types'
 
 const serviceSchema = z.object({
@@ -75,6 +76,7 @@ export function Services() {
   const [editingService, setEditingService] = useState<Service | null>(null)
   const [saving, setSaving] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<Service | null>(null)
+  const toast = useToast()
 
   const {
     register,
@@ -136,13 +138,16 @@ export function Services() {
     try {
       if (editingService) {
         await window.electronAPI.services.update(editingService.id, data)
+        toast.success('Service Updated', `${data.name} has been updated successfully.`)
       } else {
         await window.electronAPI.services.create(data)
+        toast.success('Service Created', `${data.name} has been added to services.`)
       }
       setIsDialogOpen(false)
       loadServices()
     } catch (error) {
       console.error('Failed to save service:', error)
+      toast.error('Error', 'Failed to save service. Please try again.')
     } finally {
       setSaving(false)
     }
@@ -152,9 +157,11 @@ export function Services() {
     try {
       await window.electronAPI.services.delete(service.id)
       setDeleteConfirm(null)
+      toast.success('Service Deleted', `${service.name} has been removed.`)
       loadServices()
     } catch (error) {
       console.error('Failed to delete service:', error)
+      toast.error('Error', 'Failed to delete service. Please try again.')
     }
   }
 

@@ -36,6 +36,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatCurrency, getInitials } from '@/lib/utils'
+import { useToast } from '@/components/ui/toast'
 import type { Doctor } from '@/types'
 
 const SPECIALIZATIONS = [
@@ -72,6 +73,9 @@ export function Doctors() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null)
   const [saving, setSaving] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [doctorToDelete, setDoctorToDelete] = useState<Doctor | null>(null)
+  const toast = useToast()
 
   const {
     register,
@@ -143,27 +147,39 @@ export function Doctors() {
 
       if (editingDoctor) {
         await window.electronAPI.doctors.update(editingDoctor.id, doctorData)
+        toast.success('Doctor Updated', `Dr. ${data.firstName} ${data.lastName}'s profile has been updated.`)
       } else {
         await window.electronAPI.doctors.create(doctorData)
+        toast.success('Doctor Added', `Dr. ${data.firstName} ${data.lastName} has been added to the system.`)
       }
 
       setIsDialogOpen(false)
       loadDoctors()
     } catch (error) {
       console.error('Failed to save doctor:', error)
+      toast.error('Error', 'Failed to save doctor. Please try again.')
     } finally {
       setSaving(false)
     }
   }
 
-  const handleDelete = async (doctor: Doctor) => {
-    if (confirm(`Are you sure you want to remove Dr. ${doctor.firstName} ${doctor.lastName}?`)) {
-      try {
-        await window.electronAPI.doctors.delete(doctor.id)
-        loadDoctors()
-      } catch (error) {
-        console.error('Failed to delete doctor:', error)
-      }
+  const handleDelete = (doctor: Doctor) => {
+    setDoctorToDelete(doctor)
+    setDeleteDialogOpen(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!doctorToDelete) return
+    try {
+      await window.electronAPI.doctors.delete(doctorToDelete.id)
+      toast.success('Doctor Removed', `Dr. ${doctorToDelete.firstName} ${doctorToDelete.lastName} has been removed.`)
+      loadDoctors()
+    } catch (error) {
+      console.error('Failed to delete doctor:', error)
+      toast.error('Error', 'Failed to delete doctor. Please try again.')
+    } finally {
+      setDeleteDialogOpen(false)
+      setDoctorToDelete(null)
     }
   }
 
@@ -414,6 +430,27 @@ export function Doctors() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remove Doctor</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to remove Dr. {doctorToDelete?.firstName} {doctorToDelete?.lastName}? 
+              This will not delete their past appointment records.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete}>
+              Remove Doctor
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

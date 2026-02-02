@@ -30,7 +30,7 @@ interface BackupData {
     appointments: any[]
     services: any[]
     invoices: any[]
-    settings: any[]
+    settings: Record<string, any>
   }
 }
 
@@ -55,7 +55,7 @@ export function DataBackup() {
         window.electronAPI.appointments.getAll(),
         window.electronAPI.services.getAll(),
         window.electronAPI.invoices.getAll(),
-        window.electronAPI.settings.getAll(),
+        window.electronAPI.settings.get(),
       ])
 
       setProgress(50)

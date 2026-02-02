@@ -15,6 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
+import { QuickActions } from '@/components/QuickActions'
 import { formatCurrency, formatTime, getInitials, getStatusColor } from '@/lib/utils'
 import type { DashboardStats, Appointment } from '@/types'
 import {
@@ -142,6 +143,15 @@ export function Dashboard() {
           Welcome back! Here's your hospital at a glance.
         </motion.p>
       </div>
+
+      {/* Quick Actions */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15 }}
+      >
+        <QuickActions />
+      </motion.div>
 
       {/* Stats Grid */}
       <motion.div

@@ -44,6 +44,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { formatCurrency, formatDate, getStatusColor } from '@/lib/utils'
+import { useToast } from '@/components/ui/toast'
 import type { Invoice, Patient, Service } from '@/types'
 
 const invoiceItemSchema = z.object({
@@ -84,6 +85,7 @@ export function Billing() {
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null)
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItemForm[]>([])
   const [saving, setSaving] = useState(false)
+  const toast = useToast()
 
   const {
     register: registerInvoice,
@@ -210,7 +212,7 @@ export function Billing() {
 
   const onSubmitInvoice = async (data: InvoiceForm) => {
     if (invoiceItems.length === 0) {
-      alert('Please add at least one item')
+      toast.error('Error', 'Please add at least one item')
       return
     }
     
@@ -230,9 +232,11 @@ export function Billing() {
       })
       
       setIsCreateDialogOpen(false)
+      toast.success('Invoice Created', 'Invoice has been created successfully.')
       loadData()
     } catch (error) {
       console.error('Failed to create invoice:', error)
+      toast.error('Error', 'Failed to create invoice. Please try again.')
     } finally {
       setSaving(false)
     }
@@ -246,9 +250,11 @@ export function Billing() {
       await window.electronAPI.invoices.addPayment(selectedInvoice.id, data)
       setIsPaymentDialogOpen(false)
       setIsViewDialogOpen(false)
+      toast.success('Payment Recorded', `Payment of ${formatCurrency(data.amount)} has been recorded.`)
       loadData()
     } catch (error) {
       console.error('Failed to add payment:', error)
+      toast.error('Error', 'Failed to record payment. Please try again.')
     } finally {
       setSaving(false)
     }

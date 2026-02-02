@@ -41,6 +41,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Calendar } from '@/components/ui/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { cn, formatTime, getInitials, getStatusColor } from '@/lib/utils'
+import { useToast } from '@/components/ui/toast'
 import type { Appointment, Patient, Doctor, AppointmentStatus } from '@/types'
 
 const appointmentSchema = z.object({
@@ -80,6 +81,7 @@ export function Appointments() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [saving, setSaving] = useState(false)
+  const toast = useToast()
 
   const {
     register,
@@ -144,9 +146,11 @@ export function Appointments() {
         scheduledDate: data.scheduledDate,
       })
       setIsDialogOpen(false)
+      toast.success('Appointment Created', 'New appointment has been scheduled.')
       loadData()
     } catch (error) {
       console.error('Failed to create appointment:', error)
+      toast.error('Error', 'Failed to create appointment. Please try again.')
     } finally {
       setSaving(false)
     }
@@ -155,9 +159,19 @@ export function Appointments() {
   const handleStatusChange = async (appointment: Appointment, newStatus: AppointmentStatus) => {
     try {
       await window.electronAPI.appointments.updateStatus(appointment.id, newStatus)
+      const statusLabels: Record<AppointmentStatus, string> = {
+        SCHEDULED: 'Scheduled',
+        WAITING: 'Checked In',
+        IN_PROGRESS: 'In Progress',
+        COMPLETED: 'Completed',
+        CANCELLED: 'Cancelled',
+        NO_SHOW: 'No Show',
+      }
+      toast.success('Status Updated', `Appointment marked as ${statusLabels[newStatus]}.`)
       loadData()
     } catch (error) {
       console.error('Failed to update status:', error)
+      toast.error('Error', 'Failed to update appointment status.')
     }
   }
 

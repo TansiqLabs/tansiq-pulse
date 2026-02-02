@@ -45,6 +45,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { formatDate, getInitials, calculateAge } from '@/lib/utils'
+import { useToast } from '@/components/ui/toast'
 import type { Patient } from '@/types'
 
 const patientSchema = z.object({
@@ -65,12 +66,15 @@ type PatientForm = z.infer<typeof patientSchema>
 
 export function Patients() {
   const navigate = useNavigate()
+  const toast = useToast()
   const [patients, setPatients] = useState<Patient[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null)
   const [saving, setSaving] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [patientToDelete, setPatientToDelete] = useState<Patient | null>(null)
 
   const {
     register,
@@ -159,27 +163,39 @@ export function Patients() {
 
       if (editingPatient) {
         await window.electronAPI.patients.update(editingPatient.id, patientData)
+        toast.success('Patient Updated', `${data.firstName} ${data.lastName}'s record has been updated.`)
       } else {
         await window.electronAPI.patients.create(patientData)
+        toast.success('Patient Created', `${data.firstName} ${data.lastName} has been registered.`)
       }
 
       setIsDialogOpen(false)
       loadPatients()
     } catch (error) {
       console.error('Failed to save patient:', error)
+      toast.error('Error', 'Failed to save patient. Please try again.')
     } finally {
       setSaving(false)
     }
   }
 
   const handleDelete = async (patient: Patient) => {
-    if (confirm(`Are you sure you want to delete ${patient.firstName} ${patient.lastName}?`)) {
-      try {
-        await window.electronAPI.patients.delete(patient.id)
-        loadPatients()
-      } catch (error) {
-        console.error('Failed to delete patient:', error)
-      }
+    setPatientToDelete(patient)
+    setDeleteDialogOpen(true)
+  }
+
+  const confirmDelete = async () => {
+    if (!patientToDelete) return
+    try {
+      await window.electronAPI.patients.delete(patientToDelete.id)
+      toast.success('Patient Deleted', `${patientToDelete.firstName} ${patientToDelete.lastName}'s record has been removed.`)
+      loadPatients()
+    } catch (error) {
+      console.error('Failed to delete patient:', error)
+      toast.error('Error', 'Failed to delete patient. Please try again.')
+    } finally {
+      setDeleteDialogOpen(false)
+      setPatientToDelete(null)
     }
   }
 
@@ -493,6 +509,27 @@ export function Patients() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Patient</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete {patientToDelete?.firstName} {patientToDelete?.lastName}? 
+              This action cannot be undone and will remove all associated records.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete}>
+              Delete Patient
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
