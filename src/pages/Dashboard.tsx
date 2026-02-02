@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { QuickActions } from '@/components/QuickActions'
+import { RecentActivity } from '@/components/RecentActivity'
 import { formatCurrency, formatTime, getInitials, getStatusColor } from '@/lib/utils'
 import type { DashboardStats, Appointment } from '@/types'
 import {
@@ -322,6 +323,11 @@ export function Dashboard() {
               </div>
             </CardContent>
           </Card>
+        </motion.div>
+
+        {/* Recent Activity */}
+        <motion.div variants={item}>
+          <RecentActivity maxItems={5} />
         </motion.div>
       </div>
     </div>
