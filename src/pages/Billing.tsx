@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -10,7 +10,6 @@ import {
   DollarSign,
   Trash2,
   Eye,
-  Printer,
   CreditCard,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -43,9 +42,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { formatCurrency, formatDate, getStatusColor } from '@/lib/utils'
-import type { Invoice, Patient, Service, InvoiceStatus } from '@/types'
+import type { Invoice, Patient, Service } from '@/types'
 
 const invoiceItemSchema = z.object({
   serviceId: z.number().optional(),

@@ -8,9 +8,6 @@ import {
   Search,
   User,
   Phone,
-  Mail,
-  Calendar,
-  MoreVertical,
   Edit,
   Trash2,
 } from 'lucide-react'

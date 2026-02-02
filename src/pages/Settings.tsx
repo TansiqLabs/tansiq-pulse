@@ -16,7 +16,6 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
-import type { Settings as SettingsType } from '@/types'
 
 const settingsSchema = z.object({
   hospital_name: z.string().min(1, 'Hospital name is required'),
@@ -199,9 +198,6 @@ export function Settings() {
                       valueAsNumber: true,
                       setValueAs: (v) => parseFloat(v) / 100,
                     })}
-                    onChange={(e) => {
-                      // Display as percentage
-                    }}
                   />
                   <p className="text-xs text-muted-foreground">
                     Enter as percentage (e.g., 5 for 5%)

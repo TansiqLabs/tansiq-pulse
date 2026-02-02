@@ -11,11 +11,9 @@ import {
   ChevronLeft,
   ChevronRight,
   User,
-  Stethoscope,
   CheckCircle,
   XCircle,
   Play,
-  Pause,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -88,7 +86,6 @@ export function Appointments() {
     handleSubmit,
     reset,
     setValue,
-    watch,
     formState: { errors },
   } = useForm<AppointmentForm>({
     resolver: zodResolver(appointmentSchema),
