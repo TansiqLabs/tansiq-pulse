@@ -1,0 +1,6 @@
+export { Dashboard } from './Dashboard'
+export { Patients } from './Patients'
+export { Appointments } from './Appointments'
+export { Billing } from './Billing'
+export { Doctors } from './Doctors'
+export { Settings } from './Settings'
