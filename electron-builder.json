@@ -1,0 +1,72 @@
+{
+  "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
+  "appId": "com.tansiq.pulse",
+  "productName": "Tansiq Pulse",
+  "copyright": "Copyright © 2024 Tansiq",
+  "directories": {
+    "output": "dist",
+    "buildResources": "build"
+  },
+  "files": [
+    "dist-electron/**/*",
+    "dist/**/*",
+    "node_modules/.prisma/**/*",
+    "node_modules/@prisma/client/**/*",
+    "prisma/**/*"
+  ],
+  "extraResources": [
+    {
+      "from": "prisma",
+      "to": "prisma",
+      "filter": ["**/*"]
+    }
+  ],
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64"]
+      }
+    ],
+    "icon": "public/icon.svg",
+    "artifactName": "${productName}-${version}-Setup.${ext}"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "Tansiq Pulse"
+  },
+  "linux": {
+    "target": [
+      {
+        "target": "AppImage",
+        "arch": ["x64"]
+      },
+      {
+        "target": "deb",
+        "arch": ["x64"]
+      }
+    ],
+    "category": "Office",
+    "icon": "public/icon.svg",
+    "artifactName": "${productName}-${version}.${ext}"
+  },
+  "mac": {
+    "target": [
+      {
+        "target": "dmg",
+        "arch": ["x64", "arm64"]
+      }
+    ],
+    "category": "public.app-category.medical",
+    "icon": "public/icon.svg",
+    "artifactName": "${productName}-${version}.${ext}"
+  },
+  "publish": {
+    "provider": "github",
+    "owner": "tansiq",
+    "repo": "tansiq-pulse"
+  }
+}
