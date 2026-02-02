@@ -55,6 +55,25 @@ export interface ElectronAPI {
     get: () => Promise<Record<string, any>>
     update: (key: string, value: any) => Promise<any>
   }
+  // Auto-updater
+  updater?: {
+    checkForUpdates: () => Promise<any>
+    downloadUpdate: () => Promise<any>
+    installUpdate: () => void
+    onUpdateAvailable: (callback: (event: any, info: any) => void) => void
+    onUpdateNotAvailable: (callback: () => void) => void
+    onDownloadProgress: (callback: (event: any, progress: any) => void) => void
+    onUpdateDownloaded: (callback: (event: any, info: any) => void) => void
+    onUpdateError: (callback: (event: any, error: string) => void) => void
+  }
+  // Shell
+  shell?: {
+    openExternal: (url: string) => Promise<void>
+  }
+  // Audit Log
+  auditLog?: {
+    getAll: () => Promise<any[]>
+  }
 }
 
 // Expose protected methods to the renderer process
