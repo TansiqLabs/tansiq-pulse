@@ -1,0 +1,258 @@
+// Prisma Schema for Tansiq Pulse Hospital Management System
+// Designed for SQLite with offline-first architecture
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./hospital.db"
+}
+
+// ============================================================================
+// CORE ENTITIES
+// ============================================================================
+
+model Patient {
+  id               Int           @id @default(autoincrement())
+  mrn              String        @unique // Medical Record Number: TP-YYYYMMDD-XXXX
+  firstName        String
+  lastName         String
+  dateOfBirth      DateTime
+  gender           String        // MALE, FEMALE, OTHER
+  phone            String        @unique
+  email            String?
+  address          String?
+  bloodType        String?       // A+, A-, B+, B-, AB+, AB-, O+, O-
+  emergencyContact String?
+  emergencyPhone   String?
+  notes            String?
+  
+  // Soft delete
+  deletedAt        DateTime?
+  
+  // Timestamps
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  
+  // Relations
+  appointments     Appointment[]
+  invoices         Invoice[]
+  
+  @@index([mrn])
+  @@index([phone])
+  @@index([lastName, firstName])
+}
+
+model Doctor {
+  id                  Int           @id @default(autoincrement())
+  employeeId          String        @unique // DOC-XXXX
+  firstName           String
+  lastName            String
+  specialization      String
+  phone               String
+  email               String?
+  consultationFee     Float         @default(0)
+  consultationMinutes Int           @default(15)
+  availability        String?       // JSON: { "monday": ["09:00-13:00"], ... }
+  isActive            Boolean       @default(true)
+  
+  // Soft delete
+  deletedAt           DateTime?
+  
+  // Timestamps
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  
+  // Relations
+  appointments        Appointment[]
+  
+  @@index([employeeId])
+  @@index([specialization])
+}
+
+model Appointment {
+  id            Int       @id @default(autoincrement())
+  appointmentNo String    @unique // APT-YYYYMMDD-XXXX
+  
+  // Relations
+  patientId     Int
+  patient       Patient   @relation(fields: [patientId], references: [id])
+  doctorId      Int
+  doctor        Doctor    @relation(fields: [doctorId], references: [id])
+  
+  // Scheduling
+  scheduledDate DateTime
+  scheduledTime String    // HH:MM format
+  duration      Int       @default(15) // minutes
+  
+  // Status: SCHEDULED, WAITING, IN_PROGRESS, COMPLETED, CANCELLED, NO_SHOW
+  status        String    @default("SCHEDULED")
+  
+  // Clinical
+  reason        String?
+  symptoms      String?
+  diagnosis     String?
+  notes         String?
+  
+  // Check-in/out times
+  arrivedAt     DateTime?
+  startedAt     DateTime?
+  completedAt   DateTime?
+  
+  // Timestamps
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  invoice       Invoice?
+  
+  @@index([scheduledDate])
+  @@index([status])
+  @@index([patientId])
+  @@index([doctorId])
+}
+
+// ============================================================================
+// BILLING ENTITIES
+// ============================================================================
+
+model Service {
+  id           Int           @id @default(autoincrement())
+  code         String        @unique // SRV-XXX
+  name         String
+  description  String?
+  category     String        // CONSULTATION, PROCEDURE, LAB, PHARMACY, OTHER
+  unitPrice    Float
+  isActive     Boolean       @default(true)
+  
+  // Timestamps
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  
+  // Relations
+  invoiceItems InvoiceItem[]
+  
+  @@index([code])
+  @@index([category])
+}
+
+model Invoice {
+  id              Int           @id @default(autoincrement())
+  invoiceNumber   String        @unique // INV-YYYYMM-XXXX
+  
+  // Relations
+  patientId       Int
+  patient         Patient       @relation(fields: [patientId], references: [id])
+  appointmentId   Int?          @unique
+  appointment     Appointment?  @relation(fields: [appointmentId], references: [id])
+  
+  // Amounts
+  subtotal        Float         @default(0)
+  discountType    String?       // PERCENTAGE, FIXED
+  discountValue   Float         @default(0)
+  discountAmount  Float         @default(0)
+  taxRate         Float         @default(0.05) // 5%
+  taxAmount       Float         @default(0)
+  totalAmount     Float         @default(0)
+  paidAmount      Float         @default(0)
+  balanceAmount   Float         @default(0)
+  
+  // Status: DRAFT, PENDING, PAID, PARTIALLY_PAID, CANCELLED
+  status          String        @default("DRAFT")
+  
+  // Payment tracking
+  paidAt          DateTime?
+  
+  // Notes
+  notes           String?
+  
+  // Soft delete
+  deletedAt       DateTime?
+  
+  // Timestamps
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  // Relations
+  items           InvoiceItem[]
+  payments        Payment[]
+  
+  @@index([invoiceNumber])
+  @@index([status])
+  @@index([paidAt])
+  @@index([patientId])
+}
+
+model InvoiceItem {
+  id          Int      @id @default(autoincrement())
+  
+  // Relations
+  invoiceId   Int
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  serviceId   Int?
+  service     Service? @relation(fields: [serviceId], references: [id])
+  
+  // Item details
+  description String
+  quantity    Int      @default(1)
+  unitPrice   Float
+  totalPrice  Float
+  
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([invoiceId])
+}
+
+model Payment {
+  id            Int      @id @default(autoincrement())
+  paymentNo     String   @unique // PAY-YYYYMMDD-XXXX
+  
+  // Relations
+  invoiceId     Int
+  invoice       Invoice  @relation(fields: [invoiceId], references: [id])
+  
+  // Payment details
+  amount        Float
+  paymentMethod String   // CASH, CARD, BANK_TRANSFER, INSURANCE, OTHER
+  reference     String?  // Transaction reference
+  notes         String?
+  
+  // Timestamps
+  paidAt        DateTime @default(now())
+  createdAt     DateTime @default(now())
+  
+  @@index([invoiceId])
+  @@index([paidAt])
+}
+
+// ============================================================================
+// SYSTEM ENTITIES
+// ============================================================================
+
+model Settings {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String
+  type      String   @default("string") // string, number, boolean, json
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([key])
+}
+
+// Counter for generating sequential IDs
+model Counter {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique // patient, appointment, invoice, payment, doctor, service
+  prefix    String   // TP-, APT-, INV-, PAY-, DOC-, SRV-
+  lastValue Int      @default(0)
+  
+  // Timestamps
+  updatedAt DateTime @updatedAt
+}
