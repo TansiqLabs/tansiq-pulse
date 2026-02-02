@@ -156,10 +156,19 @@ export function AutoUpdater() {
                 variant="outline"
                 size="sm"
                 onClick={checkForUpdates}
-                disabled={status === 'checking'}
               >
-                <RefreshCw className={`mr-2 h-4 w-4 ${status === 'checking' ? 'animate-spin' : ''}`} />
+                <RefreshCw className="mr-2 h-4 w-4" />
                 Check for Updates
+              </Button>
+            )}
+            {status === 'checking' && (
+              <Button
+                variant="outline"
+                size="sm"
+                disabled
+              >
+                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                Checking...
               </Button>
             )}
             {status === 'available' && (

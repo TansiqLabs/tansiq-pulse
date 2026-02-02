@@ -9,6 +9,7 @@ import {
   DollarSign,
   Save,
   CheckCircle,
+  RefreshCw,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,6 +18,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { DataBackup } from '@/components/DataBackup'
+import { AutoUpdater } from '@/components/AutoUpdater'
+import { AboutCard } from '@/components/AboutDialog'
+import { AuditLog } from '@/components/AuditLog'
 
 const settingsSchema = z.object({
   hospital_name: z.string().min(1, 'Hospital name is required'),
@@ -279,11 +283,33 @@ export function Settings() {
       {/* About Section */}
       <Separator />
       
-      {/* Data Backup Section */}
+      {/* Software Updates Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <RefreshCw className="h-5 w-5 text-primary" />
+              Software Updates
+            </CardTitle>
+            <CardDescription>
+              Check for and install application updates
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <AutoUpdater />
+          </CardContent>
+        </Card>
+      </motion.div>
+      
+      {/* Data Backup Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6 }}
       >
         <Card>
           <CardContent className="pt-6">
@@ -292,29 +318,27 @@ export function Settings() {
         </Card>
       </motion.div>
 
+      {/* Activity Log Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
+        transition={{ delay: 0.7 }}
+      >
+        <AuditLog />
+      </motion.div>
+
+      {/* About Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.8 }}
       >
         <Card>
           <CardHeader>
-            <CardTitle>About Tansiq Pulse</CardTitle>
+            <CardTitle>About</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2">
-            <p className="text-sm text-muted-foreground">
-              <strong>Version:</strong> 1.0.0
-            </p>
-            <p className="text-sm text-muted-foreground">
-              <strong>Build:</strong> February 2026
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Tansiq Pulse is an offline hospital management system designed for 
-              simplicity and reliability. All data is stored locally on your device.
-            </p>
-            <p className="text-sm text-muted-foreground mt-4">
-              © 2026 TansiqLabs. All rights reserved.
-            </p>
+          <CardContent>
+            <AboutCard />
           </CardContent>
         </Card>
       </motion.div>

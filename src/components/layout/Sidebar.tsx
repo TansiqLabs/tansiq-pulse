@@ -114,12 +114,30 @@ export function Sidebar() {
         {/* Footer */}
         <div className="border-t p-4">
           <div className="rounded-lg bg-muted/50 p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="h-6 w-6 rounded bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
+                <span className="text-[10px] font-bold text-white">TP</span>
+              </div>
+              <span className="text-xs font-medium">Tansiq Pulse</span>
+            </div>
             <p className="text-xs text-muted-foreground">
               Version 1.0.0
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              © 2026 TansiqLabs
+              © 2026 Tansiq Labs
             </p>
+            <a 
+              href="https://tansiqlabs.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-xs text-primary hover:underline mt-1 inline-block"
+              onClick={(e) => {
+                e.preventDefault()
+                window.electronAPI?.shell?.openExternal('https://tansiqlabs.com')
+              }}
+            >
+              tansiqlabs.com
+            </a>
           </div>
         </div>
       </motion.aside>

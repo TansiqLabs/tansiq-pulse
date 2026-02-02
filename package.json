@@ -145,6 +145,20 @@
       "allowToChangeInstallationDirectory": true,
       "installerIcon": "public/icon.ico",
       "uninstallerIcon": "public/icon.ico"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "TansiqLabs",
+      "repo": "tansiq-pulse",
+      "releaseType": "release"
     }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TansiqLabs/tansiq-pulse.git"
+  },
+  "homepage": "https://tansiqlabs.com",
+  "bugs": {
+    "url": "https://github.com/TansiqLabs/tansiq-pulse/issues"
   }
 }

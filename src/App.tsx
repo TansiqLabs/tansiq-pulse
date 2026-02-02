@@ -1,5 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import { Layout } from '@/components/layout'
+import { ErrorBoundary, PageErrorBoundary } from '@/components/ErrorBoundary'
+import { KeyboardShortcutsDialog, useKeyboardShortcuts } from '@/components/KeyboardShortcuts'
 import {
   Dashboard,
   Patients,
@@ -13,22 +15,35 @@ import {
   PatientProfile,
 } from '@/pages'
 
+function AppContent() {
+  const { showShortcuts, setShowShortcuts } = useKeyboardShortcuts()
+
+  return (
+    <>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<PageErrorBoundary><Dashboard /></PageErrorBoundary>} />
+          <Route path="/patients" element={<PageErrorBoundary><Patients /></PageErrorBoundary>} />
+          <Route path="/patients/:id" element={<PageErrorBoundary><PatientProfile /></PageErrorBoundary>} />
+          <Route path="/appointments" element={<PageErrorBoundary><Appointments /></PageErrorBoundary>} />
+          <Route path="/queue" element={<PageErrorBoundary><Queue /></PageErrorBoundary>} />
+          <Route path="/billing" element={<PageErrorBoundary><Billing /></PageErrorBoundary>} />
+          <Route path="/reports" element={<PageErrorBoundary><Reports /></PageErrorBoundary>} />
+          <Route path="/doctors" element={<PageErrorBoundary><Doctors /></PageErrorBoundary>} />
+          <Route path="/services" element={<PageErrorBoundary><Services /></PageErrorBoundary>} />
+          <Route path="/settings" element={<PageErrorBoundary><Settings /></PageErrorBoundary>} />
+        </Routes>
+      </Layout>
+      <KeyboardShortcutsDialog open={showShortcuts} onOpenChange={setShowShortcuts} />
+    </>
+  )
+}
+
 function App() {
   return (
-    <Layout>
-      <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/patients" element={<Patients />} />
-        <Route path="/patients/:id" element={<PatientProfile />} />
-        <Route path="/appointments" element={<Appointments />} />
-        <Route path="/queue" element={<Queue />} />
-        <Route path="/billing" element={<Billing />} />
-        <Route path="/reports" element={<Reports />} />
-        <Route path="/doctors" element={<Doctors />} />
-        <Route path="/services" element={<Services />} />
-        <Route path="/settings" element={<Settings />} />
-      </Routes>
-    </Layout>
+    <ErrorBoundary>
+      <AppContent />
+    </ErrorBoundary>
   )
 }
 

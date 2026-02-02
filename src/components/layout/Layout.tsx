@@ -1,9 +1,14 @@
 import { motion } from 'framer-motion'
-import { Moon, Sun } from 'lucide-react'
+import { Moon, Sun, Keyboard } from 'lucide-react'
 import { Sidebar } from './Sidebar'
 import { GlobalSearch } from '@/components/GlobalSearch'
 import { useTheme } from '@/components/ui/theme-provider'
 import { Button } from '@/components/ui/button'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 interface LayoutProps {
   children: React.ReactNode
@@ -11,6 +16,7 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   const { resolvedTheme, setTheme } = useTheme()
+  const isMac = typeof navigator !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0
 
   const toggleTheme = () => {
     setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')
@@ -25,18 +31,47 @@ export function Layout({ children }: LayoutProps) {
           <div className="flex items-center justify-between h-16 px-8">
             <GlobalSearch />
             <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleTheme}
-                className="rounded-full"
-              >
-                {resolvedTheme === 'dark' ? (
-                  <Sun className="h-5 w-5" />
-                ) : (
-                  <Moon className="h-5 w-5" />
-                )}
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-full"
+                    onClick={() => {
+                      const event = new KeyboardEvent('keydown', {
+                        key: '?',
+                        metaKey: isMac,
+                        ctrlKey: !isMac,
+                      })
+                      window.dispatchEvent(event)
+                    }}
+                  >
+                    <Keyboard className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Keyboard Shortcuts ({isMac ? '⌘' : 'Ctrl'}+?)</p>
+                </TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleTheme}
+                    className="rounded-full"
+                  >
+                    {resolvedTheme === 'dark' ? (
+                      <Sun className="h-5 w-5" />
+                    ) : (
+                      <Moon className="h-5 w-5" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Toggle theme</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           </div>
         </header>
