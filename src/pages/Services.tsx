@@ -16,7 +16,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -51,8 +51,7 @@ const serviceSchema = z.object({
   name: z.string().min(1, 'Service name is required'),
   description: z.string().optional(),
   category: z.string().min(1, 'Category is required'),
-  price: z.number().min(0, 'Price must be positive'),
-  durationMinutes: z.number().min(5, 'Duration must be at least 5 minutes').optional(),
+  unitPrice: z.number().min(0, 'Price must be positive'),
   isActive: z.boolean(),
 })
 
@@ -89,7 +88,6 @@ export function Services() {
     resolver: zodResolver(serviceSchema),
     defaultValues: {
       isActive: true,
-      durationMinutes: 15,
     },
   })
 
@@ -115,8 +113,7 @@ export function Services() {
       name: '',
       description: '',
       category: 'Consultation',
-      price: 0,
-      durationMinutes: 15,
+      unitPrice: 0,
       isActive: true,
     })
     setIsDialogOpen(true)
@@ -129,8 +126,7 @@ export function Services() {
       name: service.name,
       description: service.description || '',
       category: service.category,
-      price: service.price,
-      durationMinutes: service.durationMinutes || 15,
+      unitPrice: service.unitPrice,
       isActive: service.isActive,
     })
     setIsDialogOpen(true)
@@ -175,7 +171,7 @@ export function Services() {
     total: services.length,
     active: services.filter((s) => s.isActive).length,
     avgPrice: services.length > 0 
-      ? services.reduce((sum, s) => sum + s.price, 0) / services.length 
+      ? services.reduce((sum, s) => sum + s.unitPrice, 0) / services.length 
       : 0,
   }
 

@@ -64,6 +64,7 @@ const patientSchema = z.object({
 type PatientForm = z.infer<typeof patientSchema>
 
 export function Patients() {
+  const navigate = useNavigate()
   const [patients, setPatients] = useState<Patient[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
@@ -337,6 +338,13 @@ export function Patients() {
                         <TableCell>{formatDate(patient.createdAt)}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => navigate(`/patients/${patient.id}`)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
                             <Button
                               variant="ghost"
                               size="icon"
