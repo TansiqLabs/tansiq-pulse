@@ -8,6 +8,8 @@ import {
   Stethoscope,
   Settings,
   Heart,
+  BarChart3,
+  ListOrdered,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -21,7 +23,9 @@ const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Patients', href: '/patients', icon: Users },
   { name: 'Appointments', href: '/appointments', icon: CalendarDays },
+  { name: 'Queue', href: '/queue', icon: ListOrdered },
   { name: 'Billing', href: '/billing', icon: Receipt },
+  { name: 'Reports', href: '/reports', icon: BarChart3 },
   { name: 'Doctors', href: '/doctors', icon: Stethoscope },
   { name: 'Settings', href: '/settings', icon: Settings },
 ]
