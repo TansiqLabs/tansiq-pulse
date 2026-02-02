@@ -537,7 +537,7 @@ async function main() {
 
   const oldAppointment = await prisma.appointment.create({
     data: {
-      appointmentNo: `APT-${yesterdayStr}-0001`,
+      appointmentNo: `APT-${yesterdayStr}-0009`,
       patientId: patients[4].id,
       doctorId: doctors[0].id,
       scheduledDate: yesterday,
@@ -585,7 +585,7 @@ async function main() {
 
   const olderAppointment = await prisma.appointment.create({
     data: {
-      appointmentNo: `APT-${twoDaysAgoStr}-0001`,
+      appointmentNo: `APT-${twoDaysAgoStr}-0010`,
       patientId: patients[6].id,
       doctorId: doctors[1].id,
       scheduledDate: twoDaysAgo,
