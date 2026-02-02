@@ -9,7 +9,6 @@ import {
   XCircle,
   AlertCircle,
   RefreshCw,
-  Volume2,
   User,
   Stethoscope,
 } from 'lucide-react'
@@ -18,8 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Separator } from '@/components/ui/separator'
-import type { Appointment, Patient, Doctor } from '@/types'
+import type { Patient, Doctor } from '@/types'
 
 interface QueueItem {
   id: number
@@ -134,32 +132,8 @@ export function Queue() {
     }
   }
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'WAITING':
-        return <Clock className="h-4 w-4 text-amber-500" />
-      case 'IN_PROGRESS':
-        return <Play className="h-4 w-4 text-blue-500" />
-      case 'COMPLETED':
-        return <CheckCircle className="h-4 w-4 text-emerald-500" />
-      case 'CANCELLED':
-        return <XCircle className="h-4 w-4 text-red-500" />
-      default:
-        return <AlertCircle className="h-4 w-4 text-slate-500" />
-    }
-  }
-
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, string> = {
-      SCHEDULED: 'bg-slate-100 text-slate-700',
-      WAITING: 'bg-amber-100 text-amber-700',
-      IN_PROGRESS: 'bg-blue-100 text-blue-700',
-      COMPLETED: 'bg-emerald-100 text-emerald-700',
-      CANCELLED: 'bg-red-100 text-red-700',
-    }
-    return (
-      <Badge className={variants[status] || 'bg-slate-100 text-slate-700'}>
-        {status.replace('_', ' ')}
+  const getPatientName = (patient: Patient) => `${patient.firstName} ${patient.lastName}`
+  const getDoctorName = (doctor: Doctor) => `${doctor.firstName} ${doctor.lastName}`
       </Badge>
     )
   }
@@ -286,7 +260,7 @@ export function Queue() {
                               {index + 1}
                             </div>
                             <div>
-                              <p className="font-semibold">{apt.patient.fullName}</p>
+                              <p className="font-semibold">{getPatientName(apt.patient)}</p>
                               <p className="text-xs text-muted-foreground font-mono">
                                 {apt.appointmentNo}
                               </p>
@@ -306,7 +280,7 @@ export function Queue() {
                           </div>
                           <div className="flex items-center gap-1">
                             <Stethoscope className="h-3 w-3" />
-                            Dr. {apt.doctor.fullName.split(' ').pop()}
+                            Dr. {apt.doctor.lastName}
                           </div>
                         </div>
 

@@ -11,6 +11,7 @@ import {
   Trash2,
   Eye,
   CreditCard,
+  Printer,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -251,6 +252,124 @@ export function Billing() {
     } finally {
       setSaving(false)
     }
+  }
+
+  const handlePrintInvoice = (invoice: Invoice) => {
+    const printWindow = window.open('', '_blank')
+    if (!printWindow) return
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Invoice ${invoice.invoiceNumber}</title>
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 40px; max-width: 800px; margin: 0 auto; }
+            .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #10b981; padding-bottom: 20px; }
+            .header h1 { color: #10b981; font-size: 28px; margin-bottom: 5px; }
+            .header p { color: #666; font-size: 12px; }
+            .info-row { display: flex; justify-content: space-between; margin-bottom: 30px; }
+            .info-box { width: 48%; }
+            .info-box h3 { font-size: 12px; color: #888; text-transform: uppercase; margin-bottom: 8px; }
+            .info-box p { font-size: 14px; line-height: 1.6; }
+            table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+            th { background: #f3f4f6; padding: 12px; text-align: left; font-size: 12px; text-transform: uppercase; color: #666; }
+            td { padding: 12px; border-bottom: 1px solid #e5e7eb; font-size: 14px; }
+            .text-right { text-align: right; }
+            .totals { margin-top: 20px; width: 300px; margin-left: auto; }
+            .totals div { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; }
+            .totals .total-row { border-top: 2px solid #10b981; font-weight: bold; font-size: 16px; margin-top: 8px; padding-top: 12px; }
+            .footer { margin-top: 60px; text-align: center; font-size: 12px; color: #888; }
+            .status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+            .status-paid { background: #d1fae5; color: #059669; }
+            .status-pending { background: #fef3c7; color: #d97706; }
+            .status-partial { background: #dbeafe; color: #2563eb; }
+            @media print { body { padding: 20px; } }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Tansiq Pulse</h1>
+            <p>Hospital Management System</p>
+          </div>
+          
+          <div class="info-row">
+            <div class="info-box">
+              <h3>Invoice Details</h3>
+              <p><strong>${invoice.invoiceNumber}</strong></p>
+              <p>Date: ${new Date(invoice.createdAt).toLocaleDateString()}</p>
+              <p>Status: <span class="status status-${invoice.status.toLowerCase()}">${invoice.status}</span></p>
+            </div>
+            <div class="info-box" style="text-align: right;">
+              <h3>Bill To</h3>
+              <p><strong>${invoice.patient?.firstName} ${invoice.patient?.lastName}</strong></p>
+              <p>${invoice.patient?.phone || ''}</p>
+              <p>MRN: ${invoice.patient?.mrn || ''}</p>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th class="text-right">Qty</th>
+                <th class="text-right">Unit Price</th>
+                <th class="text-right">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${invoice.items?.map(item => `
+                <tr>
+                  <td>${item.description}</td>
+                  <td class="text-right">${item.quantity}</td>
+                  <td class="text-right">$${item.unitPrice.toFixed(2)}</td>
+                  <td class="text-right">$${item.totalPrice.toFixed(2)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+
+          <div class="totals">
+            <div>
+              <span>Subtotal</span>
+              <span>$${invoice.subtotal.toFixed(2)}</span>
+            </div>
+            ${invoice.discountAmount > 0 ? `
+              <div style="color: #059669;">
+                <span>Discount</span>
+                <span>-$${invoice.discountAmount.toFixed(2)}</span>
+              </div>
+            ` : ''}
+            <div>
+              <span>Tax (${(invoice.taxRate * 100).toFixed(0)}%)</span>
+              <span>$${invoice.taxAmount.toFixed(2)}</span>
+            </div>
+            <div class="total-row">
+              <span>Total</span>
+              <span>$${invoice.totalAmount.toFixed(2)}</span>
+            </div>
+            <div style="color: #059669;">
+              <span>Paid</span>
+              <span>$${invoice.paidAmount.toFixed(2)}</span>
+            </div>
+            <div style="color: #dc2626; font-weight: bold;">
+              <span>Balance Due</span>
+              <span>$${invoice.balanceAmount.toFixed(2)}</span>
+            </div>
+          </div>
+
+          <div class="footer">
+            <p>Thank you for choosing Tansiq Pulse</p>
+            <p style="margin-top: 5px;">This is a computer-generated invoice</p>
+          </div>
+          
+          <script>window.onload = () => { window.print(); }</script>
+        </body>
+      </html>
+    `
+    printWindow.document.write(html)
+    printWindow.document.close()
   }
 
   const filteredInvoices = invoices.filter((invoice) => {
@@ -751,7 +870,11 @@ export function Billing() {
                 </div>
               )}
 
-              <DialogFooter>
+              <DialogFooter className="gap-2">
+                <Button variant="outline" onClick={() => handlePrintInvoice(selectedInvoice)}>
+                  <Printer className="mr-2 h-4 w-4" />
+                  Print Invoice
+                </Button>
                 {selectedInvoice.status !== 'PAID' && selectedInvoice.status !== 'CANCELLED' && (
                   <Button onClick={() => openPaymentDialog(selectedInvoice)}>
                     <CreditCard className="mr-2 h-4 w-4" />

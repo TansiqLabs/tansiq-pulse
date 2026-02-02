@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, subMonths } from 'date-fns'
+import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from 'date-fns'
 import {
   FileText,
   Download,
   Calendar,
   TrendingUp,
-  Users,
   DollarSign,
   Filter,
 } from 'lucide-react'
@@ -20,7 +19,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Separator } from '@/components/ui/separator'
 import {
   Table,
   TableBody,
@@ -30,7 +28,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { DatePicker } from '@/components/ui/date-picker'
-import { formatCurrency, formatDate } from '@/lib/utils'
+import { formatCurrency } from '@/lib/utils'
 import {
   BarChart,
   Bar,
