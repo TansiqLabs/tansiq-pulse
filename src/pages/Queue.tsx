@@ -6,7 +6,6 @@ import {
   Clock,
   Play,
   CheckCircle,
-  XCircle,
   AlertCircle,
   RefreshCw,
   User,
@@ -134,9 +133,6 @@ export function Queue() {
 
   const getPatientName = (patient: Patient) => `${patient.firstName} ${patient.lastName}`
   const getDoctorName = (doctor: Doctor) => `${doctor.firstName} ${doctor.lastName}`
-      </Badge>
-    )
-  }
 
   const waitingCount = appointments.filter((a) => a.status === 'WAITING').length
   const inProgressCount = appointments.filter((a) => a.status === 'IN_PROGRESS').length
@@ -339,13 +335,13 @@ export function Queue() {
                         <div className="flex items-center gap-3 mb-3">
                           <Avatar>
                             <AvatarFallback className="bg-blue-200 text-blue-700">
-                              {apt.patient.fullName.charAt(0)}
+                              {apt.patient.firstName.charAt(0)}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-semibold">{apt.patient.fullName}</p>
+                            <p className="font-semibold">{getPatientName(apt.patient)}</p>
                             <p className="text-xs text-muted-foreground">
-                              with Dr. {apt.doctor.fullName}
+                              with Dr. {getDoctorName(apt.doctor)}
                             </p>
                           </div>
                         </div>
@@ -411,7 +407,7 @@ export function Queue() {
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <User className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium text-sm">{apt.patient.fullName}</span>
+                          <span className="font-medium text-sm">{getPatientName(apt.patient)}</span>
                         </div>
                         <span className="text-sm font-mono text-muted-foreground">
                           {apt.scheduledTime}
@@ -419,7 +415,7 @@ export function Queue() {
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-muted-foreground">
-                          Dr. {apt.doctor.fullName.split(' ').pop()}
+                          Dr. {apt.doctor.lastName}
                         </span>
                         <Button
                           size="sm"
@@ -464,9 +460,9 @@ export function Queue() {
                     >
                       <CheckCircle className="h-4 w-4 text-emerald-500" />
                       <div className="min-w-0">
-                        <p className="font-medium text-sm truncate">{apt.patient.fullName}</p>
+                        <p className="font-medium text-sm truncate">{getPatientName(apt.patient)}</p>
                         <p className="text-xs text-muted-foreground">
-                          {apt.scheduledTime} • Dr. {apt.doctor.fullName.split(' ').pop()}
+                          {apt.scheduledTime} • Dr. {apt.doctor.lastName}
                         </p>
                       </div>
                     </div>

@@ -99,12 +99,10 @@ export function Reports() {
     setLoading(true)
     try {
       // Fetch all required data in parallel
-      const [dashboardData, invoices, appointments, payments] = await Promise.all([
+      const [dashboardData, invoices, appointments] = await Promise.all([
         window.electronAPI.dashboard.getStats(),
         window.electronAPI.invoices.getAll(),
         window.electronAPI.appointments.getAll(),
-        // Get payments through invoices
-        window.electronAPI.invoices.getAll(),
       ])
 
       // Filter by date range
