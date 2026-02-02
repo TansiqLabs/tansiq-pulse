@@ -10,6 +10,7 @@ import {
   Heart,
   BarChart3,
   ListOrdered,
+  Package,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -27,6 +28,7 @@ const navigation = [
   { name: 'Billing', href: '/billing', icon: Receipt },
   { name: 'Reports', href: '/reports', icon: BarChart3 },
   { name: 'Doctors', href: '/doctors', icon: Stethoscope },
+  { name: 'Services', href: '/services', icon: Package },
   { name: 'Settings', href: '/settings', icon: Settings },
 ]
 

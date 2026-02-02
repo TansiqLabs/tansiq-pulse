@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
+import { DataBackup } from '@/components/DataBackup'
 
 const settingsSchema = z.object({
   hospital_name: z.string().min(1, 'Hospital name is required'),
@@ -278,6 +279,19 @@ export function Settings() {
       {/* About Section */}
       <Separator />
       
+      {/* Data Backup Section */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+      >
+        <Card>
+          <CardContent className="pt-6">
+            <DataBackup />
+          </CardContent>
+        </Card>
+      </motion.div>
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
