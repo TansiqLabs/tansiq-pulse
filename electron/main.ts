@@ -1,5 +1,6 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import { PrismaClient } from '@prisma/client'
+import { autoUpdater } from 'electron-updater'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
@@ -11,6 +12,93 @@ const prisma = new PrismaClient()
 let mainWindow: BrowserWindow | null = null
 
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL']
+const isDev = !!VITE_DEV_SERVER_URL
+
+// ============================================================================
+// AUTO-UPDATER CONFIGURATION
+// ============================================================================
+
+function setupAutoUpdater() {
+  if (isDev) {
+    console.log('Auto-updater disabled in development mode')
+    return
+  }
+
+  // Configure auto-updater
+  autoUpdater.autoDownload = false
+  autoUpdater.autoInstallOnAppQuit = true
+
+  // Set GitHub repository
+  autoUpdater.setFeedURL({
+    provider: 'github',
+    owner: 'TansiqLabs',
+    repo: 'tansiq-pulse',
+  })
+
+  // Auto-updater events
+  autoUpdater.on('checking-for-update', () => {
+    console.log('Checking for update...')
+  })
+
+  autoUpdater.on('update-available', (info) => {
+    console.log('Update available:', info)
+    mainWindow?.webContents.send('update-available', {
+      version: info.version,
+      releaseDate: info.releaseDate,
+      releaseNotes: info.releaseNotes,
+    })
+  })
+
+  autoUpdater.on('update-not-available', () => {
+    console.log('Update not available')
+    mainWindow?.webContents.send('update-not-available')
+  })
+
+  autoUpdater.on('download-progress', (progress) => {
+    console.log(`Download progress: ${progress.percent}%`)
+    mainWindow?.webContents.send('download-progress', progress)
+  })
+
+  autoUpdater.on('update-downloaded', (info) => {
+    console.log('Update downloaded:', info)
+    mainWindow?.webContents.send('update-downloaded', {
+      version: info.version,
+      releaseDate: info.releaseDate,
+      releaseNotes: info.releaseNotes,
+    })
+  })
+
+  autoUpdater.on('error', (error) => {
+    console.error('Auto-updater error:', error)
+    mainWindow?.webContents.send('update-error', error.message)
+  })
+
+  // Check for updates after app starts (with delay)
+  setTimeout(() => {
+    autoUpdater.checkForUpdates().catch(console.error)
+  }, 5000)
+}
+
+// Auto-updater IPC handlers
+ipcMain.handle('updater:check', async () => {
+  if (isDev) {
+    throw new Error('Auto-update not available in development mode')
+  }
+  return autoUpdater.checkForUpdates()
+})
+
+ipcMain.handle('updater:download', async () => {
+  return autoUpdater.downloadUpdate()
+})
+
+ipcMain.handle('updater:install', () => {
+  autoUpdater.quitAndInstall(false, true)
+})
+
+// Shell IPC handler for opening external links
+ipcMain.handle('shell:openExternal', async (_event, url: string) => {
+  return shell.openExternal(url)
+})
 
 async function createWindow() {
   mainWindow = new BrowserWindow({
@@ -49,7 +137,10 @@ async function createWindow() {
 }
 
 // App lifecycle
-app.whenReady().then(createWindow)
+app.whenReady().then(() => {
+  createWindow()
+  setupAutoUpdater()
+})
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {

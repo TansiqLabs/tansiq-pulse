@@ -118,7 +118,29 @@ contextBridge.exposeInMainWorld('electronAPI', {
     get: () => ipcRenderer.invoke('settings:get'),
     update: (key: string, value: any) => ipcRenderer.invoke('settings:update', { key, value }),
   },
-} satisfies ElectronAPI)
+
+  // Auto-updater
+  updater: {
+    checkForUpdates: () => ipcRenderer.invoke('updater:check'),
+    downloadUpdate: () => ipcRenderer.invoke('updater:download'),
+    installUpdate: () => ipcRenderer.invoke('updater:install'),
+    onUpdateAvailable: (callback: (event: any, info: any) => void) => 
+      ipcRenderer.on('update-available', callback),
+    onUpdateNotAvailable: (callback: () => void) => 
+      ipcRenderer.on('update-not-available', callback),
+    onDownloadProgress: (callback: (event: any, progress: any) => void) => 
+      ipcRenderer.on('download-progress', callback),
+    onUpdateDownloaded: (callback: (event: any, info: any) => void) => 
+      ipcRenderer.on('update-downloaded', callback),
+    onUpdateError: (callback: (event: any, error: string) => void) => 
+      ipcRenderer.on('update-error', callback),
+  },
+
+  // Shell (for opening external links)
+  shell: {
+    openExternal: (url: string) => ipcRenderer.invoke('shell:openExternal', url),
+  },
+})
 
 // Type declaration for TypeScript
 declare global {
