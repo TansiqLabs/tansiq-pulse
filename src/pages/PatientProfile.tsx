@@ -4,7 +4,6 @@ import { motion } from 'framer-motion'
 import { format } from 'date-fns'
 import {
   ArrowLeft,
-  User,
   Phone,
   Mail,
   MapPin,

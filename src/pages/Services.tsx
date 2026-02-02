@@ -10,7 +10,6 @@ import {
   Trash2,
   Package,
   DollarSign,
-  Clock,
   Tag,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -279,7 +278,6 @@ export function Services() {
                     <TableHead>Code</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Category</TableHead>
-                    <TableHead>Duration</TableHead>
                     <TableHead className="text-right">Price</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -309,18 +307,8 @@ export function Services() {
                         <TableCell>
                           <Badge variant="outline">{service.category}</Badge>
                         </TableCell>
-                        <TableCell>
-                          {service.durationMinutes ? (
-                            <span className="flex items-center gap-1 text-sm">
-                              <Clock className="h-3 w-3" />
-                              {service.durationMinutes} min
-                            </span>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
                         <TableCell className="text-right font-medium">
-                          {formatCurrency(service.price)}
+                          {formatCurrency(service.unitPrice)}
                         </TableCell>
                         <TableCell>
                           <Badge
@@ -421,25 +409,16 @@ export function Services() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Price *</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  {...register('price', { valueAsNumber: true })}
-                />
-                {errors.price && (
-                  <p className="text-xs text-red-500">{errors.price.message}</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label>Duration (minutes)</Label>
-                <Input
-                  type="number"
-                  {...register('durationMinutes', { valueAsNumber: true })}
-                />
-              </div>
+            <div className="space-y-2">
+              <Label>Unit Price *</Label>
+              <Input
+                type="number"
+                step="0.01"
+                {...register('unitPrice', { valueAsNumber: true })}
+              />
+              {errors.unitPrice && (
+                <p className="text-xs text-red-500">{errors.unitPrice.message}</p>
+              )}
             </div>
 
             <div className="flex items-center gap-2">

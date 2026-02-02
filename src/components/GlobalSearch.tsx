@@ -15,7 +15,7 @@ import {
   Dialog,
   DialogContent,
 } from '@/components/ui/dialog'
-import type { Patient, Appointment, Invoice, Doctor } from '@/types'
+import type { Patient, Invoice, Doctor } from '@/types'
 
 interface SearchResult {
   type: 'patient' | 'appointment' | 'invoice' | 'doctor'
