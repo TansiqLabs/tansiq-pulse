@@ -13,6 +13,8 @@ import {
   Package,
   Wallet,
   Calendar,
+  PieChart,
+  UserCog,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -31,7 +33,9 @@ const navigation = [
   { name: 'Billing', href: '/billing', icon: Receipt },
   { name: 'Expenses', href: '/expenses', icon: Wallet },
   { name: 'Reports', href: '/reports', icon: BarChart3 },
+  { name: 'Analytics', href: '/analytics', icon: PieChart },
   { name: 'Doctors', href: '/doctors', icon: Stethoscope },
+  { name: 'Staff', href: '/staff', icon: UserCog },
   { name: 'Services', href: '/services', icon: Package },
   { name: 'Settings', href: '/settings', icon: Settings },
 ]

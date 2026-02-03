@@ -15,6 +15,8 @@ import {
   PatientProfile,
   Schedule,
   Expenses,
+  Analytics,
+  Staff,
 } from '@/pages'
 
 function AppContent() {
@@ -33,7 +35,9 @@ function AppContent() {
           <Route path="/billing" element={<PageErrorBoundary><Billing /></PageErrorBoundary>} />
           <Route path="/expenses" element={<PageErrorBoundary><Expenses /></PageErrorBoundary>} />
           <Route path="/reports" element={<PageErrorBoundary><Reports /></PageErrorBoundary>} />
+          <Route path="/analytics" element={<PageErrorBoundary><Analytics /></PageErrorBoundary>} />
           <Route path="/doctors" element={<PageErrorBoundary><Doctors /></PageErrorBoundary>} />
+          <Route path="/staff" element={<PageErrorBoundary><Staff /></PageErrorBoundary>} />
           <Route path="/services" element={<PageErrorBoundary><Services /></PageErrorBoundary>} />
           <Route path="/settings" element={<PageErrorBoundary><Settings /></PageErrorBoundary>} />
         </Routes>

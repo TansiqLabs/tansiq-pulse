@@ -31,6 +31,9 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { PatientVitals } from '@/components/PatientVitals'
+import { LabResults } from '@/components/LabResults'
+import { PrescriptionManager } from '@/components/PrescriptionManager'
+import { FollowUpScheduler } from '@/components/FollowUpScheduler'
 import { formatCurrency, formatDate, getStatusColor } from '@/lib/utils'
 import type { Patient, Appointment, Invoice } from '@/types'
 
@@ -301,9 +304,12 @@ export function PatientProfile() {
           <Card>
             <Tabs defaultValue="appointments">
               <CardHeader className="pb-0">
-                <TabsList>
+                <TabsList className="flex-wrap h-auto gap-1">
                   <TabsTrigger value="appointments">Appointments</TabsTrigger>
                   <TabsTrigger value="vitals">Vitals</TabsTrigger>
+                  <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
+                  <TabsTrigger value="labs">Lab Results</TabsTrigger>
+                  <TabsTrigger value="followups">Follow-ups</TabsTrigger>
                   <TabsTrigger value="invoices">Invoices</TabsTrigger>
                 </TabsList>
               </CardHeader>
@@ -352,6 +358,23 @@ export function PatientProfile() {
 
                 <TabsContent value="vitals" className="m-0">
                   <PatientVitals patientId={patient.id} patientName={`${patient.firstName} ${patient.lastName}`} />
+                </TabsContent>
+
+                <TabsContent value="prescriptions" className="m-0">
+                  <PrescriptionManager patientId={patient.id} patientName={`${patient.firstName} ${patient.lastName}`} />
+                </TabsContent>
+
+                <TabsContent value="labs" className="m-0">
+                  <LabResults patientId={patient.id} patientName={`${patient.firstName} ${patient.lastName}`} />
+                </TabsContent>
+
+                <TabsContent value="followups" className="m-0">
+                  <FollowUpScheduler 
+                    patientId={patient.id} 
+                    patientName={`${patient.firstName} ${patient.lastName}`}
+                    patientPhone={patient.phone}
+                    patientEmail={patient.email}
+                  />
                 </TabsContent>
 
                 <TabsContent value="invoices" className="m-0">
