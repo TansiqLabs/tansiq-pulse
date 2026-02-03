@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { Moon, Sun, Keyboard } from 'lucide-react'
 import { Sidebar } from './Sidebar'
 import { GlobalSearch } from '@/components/GlobalSearch'
+import { AppointmentReminders } from '@/components/AppointmentReminders'
 import { useTheme } from '@/components/ui/theme-provider'
 import { Button } from '@/components/ui/button'
 import {
@@ -31,6 +32,7 @@ export function Layout({ children }: LayoutProps) {
           <div className="flex items-center justify-between h-16 px-8">
             <GlobalSearch />
             <div className="flex items-center gap-2">
+              <AppointmentReminders />
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button

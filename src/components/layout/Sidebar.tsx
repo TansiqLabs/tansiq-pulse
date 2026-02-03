@@ -11,6 +11,8 @@ import {
   BarChart3,
   ListOrdered,
   Package,
+  Wallet,
+  Calendar,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -24,8 +26,10 @@ const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Patients', href: '/patients', icon: Users },
   { name: 'Appointments', href: '/appointments', icon: CalendarDays },
+  { name: 'Schedule', href: '/schedule', icon: Calendar },
   { name: 'Queue', href: '/queue', icon: ListOrdered },
   { name: 'Billing', href: '/billing', icon: Receipt },
+  { name: 'Expenses', href: '/expenses', icon: Wallet },
   { name: 'Reports', href: '/reports', icon: BarChart3 },
   { name: 'Doctors', href: '/doctors', icon: Stethoscope },
   { name: 'Services', href: '/services', icon: Package },

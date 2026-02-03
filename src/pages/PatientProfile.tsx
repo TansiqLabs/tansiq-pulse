@@ -14,6 +14,7 @@ import {
   Clock,
   DollarSign,
   Edit,
+  Activity,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -30,6 +31,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { PatientVitals } from '@/components/PatientVitals'
 import { formatCurrency, formatDate, getStatusColor } from '@/lib/utils'
 import type { Patient, Appointment, Invoice } from '@/types'
 
@@ -302,6 +304,7 @@ export function PatientProfile() {
               <CardHeader className="pb-0">
                 <TabsList>
                   <TabsTrigger value="appointments">Appointments</TabsTrigger>
+                  <TabsTrigger value="vitals">Vitals</TabsTrigger>
                   <TabsTrigger value="invoices">Invoices</TabsTrigger>
                 </TabsList>
               </CardHeader>
@@ -346,6 +349,10 @@ export function PatientProfile() {
                       </TableBody>
                     </Table>
                   )}
+                </TabsContent>
+
+                <TabsContent value="vitals" className="m-0">
+                  <PatientVitals patientId={patient.id} />
                 </TabsContent>
 
                 <TabsContent value="invoices" className="m-0">

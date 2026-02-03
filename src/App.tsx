@@ -13,6 +13,8 @@ import {
   Queue,
   Services,
   PatientProfile,
+  Schedule,
+  Expenses,
 } from '@/pages'
 
 function AppContent() {
@@ -26,8 +28,10 @@ function AppContent() {
           <Route path="/patients" element={<PageErrorBoundary><Patients /></PageErrorBoundary>} />
           <Route path="/patients/:id" element={<PageErrorBoundary><PatientProfile /></PageErrorBoundary>} />
           <Route path="/appointments" element={<PageErrorBoundary><Appointments /></PageErrorBoundary>} />
+          <Route path="/schedule" element={<PageErrorBoundary><Schedule /></PageErrorBoundary>} />
           <Route path="/queue" element={<PageErrorBoundary><Queue /></PageErrorBoundary>} />
           <Route path="/billing" element={<PageErrorBoundary><Billing /></PageErrorBoundary>} />
+          <Route path="/expenses" element={<PageErrorBoundary><Expenses /></PageErrorBoundary>} />
           <Route path="/reports" element={<PageErrorBoundary><Reports /></PageErrorBoundary>} />
           <Route path="/doctors" element={<PageErrorBoundary><Doctors /></PageErrorBoundary>} />
           <Route path="/services" element={<PageErrorBoundary><Services /></PageErrorBoundary>} />
