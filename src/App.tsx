@@ -17,6 +17,10 @@ import {
   Expenses,
   Analytics,
   Staff,
+  Inventory,
+  Beds,
+  Notifications,
+  Shifts,
 } from '@/pages'
 
 function AppContent() {
@@ -38,7 +42,11 @@ function AppContent() {
           <Route path="/analytics" element={<PageErrorBoundary><Analytics /></PageErrorBoundary>} />
           <Route path="/doctors" element={<PageErrorBoundary><Doctors /></PageErrorBoundary>} />
           <Route path="/staff" element={<PageErrorBoundary><Staff /></PageErrorBoundary>} />
+          <Route path="/shifts" element={<PageErrorBoundary><Shifts /></PageErrorBoundary>} />
           <Route path="/services" element={<PageErrorBoundary><Services /></PageErrorBoundary>} />
+          <Route path="/inventory" element={<PageErrorBoundary><Inventory /></PageErrorBoundary>} />
+          <Route path="/beds" element={<PageErrorBoundary><Beds /></PageErrorBoundary>} />
+          <Route path="/notifications" element={<PageErrorBoundary><Notifications /></PageErrorBoundary>} />
           <Route path="/settings" element={<PageErrorBoundary><Settings /></PageErrorBoundary>} />
         </Routes>
       </Layout>

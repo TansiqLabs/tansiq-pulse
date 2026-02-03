@@ -15,6 +15,10 @@ import {
   Calendar,
   PieChart,
   UserCog,
+  BedDouble,
+  Bell,
+  Clock,
+  Boxes,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -36,7 +40,11 @@ const navigation = [
   { name: 'Analytics', href: '/analytics', icon: PieChart },
   { name: 'Doctors', href: '/doctors', icon: Stethoscope },
   { name: 'Staff', href: '/staff', icon: UserCog },
+  { name: 'Shifts', href: '/shifts', icon: Clock },
+  { name: 'Beds', href: '/beds', icon: BedDouble },
+  { name: 'Inventory', href: '/inventory', icon: Boxes },
   { name: 'Services', href: '/services', icon: Package },
+  { name: 'Notifications', href: '/notifications', icon: Bell },
   { name: 'Settings', href: '/settings', icon: Settings },
 ]
 
