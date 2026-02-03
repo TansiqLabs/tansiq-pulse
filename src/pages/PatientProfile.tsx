@@ -14,7 +14,6 @@ import {
   Clock,
   DollarSign,
   Edit,
-  Activity,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -352,7 +351,7 @@ export function PatientProfile() {
                 </TabsContent>
 
                 <TabsContent value="vitals" className="m-0">
-                  <PatientVitals patientId={patient.id} />
+                  <PatientVitals patientId={patient.id} patientName={`${patient.firstName} ${patient.lastName}`} />
                 </TabsContent>
 
                 <TabsContent value="invoices" className="m-0">
