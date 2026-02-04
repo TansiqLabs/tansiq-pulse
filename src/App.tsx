@@ -24,6 +24,10 @@ import {
   Documents,
   Waitlist,
   Claims,
+  Referrals,
+  Surgery,
+  Feedback,
+  Equipment,
 } from '@/pages'
 
 function AppContent() {
@@ -53,6 +57,10 @@ function AppContent() {
           <Route path="/documents" element={<PageErrorBoundary><Documents /></PageErrorBoundary>} />
           <Route path="/waitlist" element={<PageErrorBoundary><Waitlist /></PageErrorBoundary>} />
           <Route path="/claims" element={<PageErrorBoundary><Claims /></PageErrorBoundary>} />
+          <Route path="/referrals" element={<PageErrorBoundary><Referrals /></PageErrorBoundary>} />
+          <Route path="/surgery" element={<PageErrorBoundary><Surgery /></PageErrorBoundary>} />
+          <Route path="/feedback" element={<PageErrorBoundary><Feedback /></PageErrorBoundary>} />
+          <Route path="/equipment" element={<PageErrorBoundary><Equipment /></PageErrorBoundary>} />
           <Route path="/settings" element={<PageErrorBoundary><Settings /></PageErrorBoundary>} />
         </Routes>
       </Layout>
