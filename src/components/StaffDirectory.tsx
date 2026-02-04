@@ -87,6 +87,22 @@ import {
   Share2,
   StickyNote,
   CalendarDays,
+  Trophy,
+  Medal,
+  FileCheck,
+  Palmtree,
+  Umbrella,
+  HeartHandshake,
+  ThumbsUp,
+  Crown,
+  Rocket,
+  LineChart,
+  LayoutDashboard,
+  FolderKanban,
+  UsersRound,
+  Siren,
+  CalendarCheck,
+  CalendarX,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -606,6 +622,112 @@ export function StaffDirectory() {
   // Quick Contact Actions
   const [showContactActions, setShowContactActions] = useState(false)
   const [contactActionsStaff, setContactActionsStaff] = useState<StaffMember | null>(null)
+  
+  // Skills & Certifications
+  const [showSkillsDialog, setShowSkillsDialog] = useState(false)
+  const [staffSkills, setStaffSkills] = useState<Record<string, Array<{
+    id: string
+    name: string
+    level: 'beginner' | 'intermediate' | 'advanced' | 'expert'
+    verified: boolean
+  }>>>(() => safeGetFromStorage('tansiq_staff_skills', {}))
+  const [staffCertifications, setStaffCertifications] = useState<Record<string, Array<{
+    id: string
+    name: string
+    issuer: string
+    issueDate: string
+    expiryDate: string | null
+    status: 'valid' | 'expiring' | 'expired'
+  }>>>(() => safeGetFromStorage('tansiq_staff_certs', {}))
+  const [newSkill, setNewSkill] = useState({ name: '', level: 'intermediate' as const })
+  const [newCert, setNewCert] = useState({ name: '', issuer: '', issueDate: '', expiryDate: '' })
+  
+  // Recognition & Awards
+  const [showRecognitionDialog, setShowRecognitionDialog] = useState(false)
+  const [staffRecognitions, setStaffRecognitions] = useState<Record<string, Array<{
+    id: string
+    type: 'kudos' | 'award' | 'achievement' | 'milestone'
+    title: string
+    description: string
+    givenBy: string
+    date: string
+    points: number
+  }>>>(() => safeGetFromStorage('tansiq_staff_recognition', {}))
+  const [newRecognition, setNewRecognition] = useState({
+    type: 'kudos' as 'kudos' | 'award' | 'achievement' | 'milestone',
+    title: '',
+    description: '',
+    points: 10
+  })
+  
+  // Leave Calendar
+  const [showLeaveCalendar, setShowLeaveCalendar] = useState(false)
+  const [staffLeaves] = useState<Record<string, Array<{
+    id: string
+    type: 'annual' | 'sick' | 'personal' | 'maternity' | 'paternity' | 'unpaid'
+    startDate: string
+    endDate: string
+    status: 'pending' | 'approved' | 'rejected'
+    reason: string
+  }>>>(() => safeGetFromStorage('tansiq_staff_leaves', {}))
+  
+  // Team Management
+  const [showTeamDialog, setShowTeamDialog] = useState(false)
+  const [teams, setTeams] = useState<Array<{
+    id: string
+    name: string
+    description: string
+    leaderId: string
+    memberIds: string[]
+    color: string
+    createdAt: string
+  }>>(() => safeGetFromStorage('tansiq_teams', []))
+  const [newTeam, setNewTeam] = useState({ name: '', description: '', color: '#3B82F6' })
+  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null)
+  
+  // Emergency Contacts
+  const [showEmergencyContactsDialog, setShowEmergencyContactsDialog] = useState(false)
+  const [staffEmergencyContacts, setStaffEmergencyContacts] = useState<Record<string, Array<{
+    id: string
+    name: string
+    relationship: string
+    phone: string
+    email?: string
+    isPrimary: boolean
+  }>>>(() => safeGetFromStorage('tansiq_emergency_contacts', {}))
+  const [newEmergencyContact, setNewEmergencyContact] = useState({
+    name: '',
+    relationship: '',
+    phone: '',
+    email: '',
+    isPrimary: false
+  })
+  
+  // Performance Trends
+  const [showPerformanceTrends, setShowPerformanceTrends] = useState(false)
+  
+  // Staff Goals
+  const [showGoalsDialog, setShowGoalsDialog] = useState(false)
+  const [staffGoals, setStaffGoals] = useState<Record<string, Array<{
+    id: string
+    title: string
+    description: string
+    category: 'performance' | 'skill' | 'project' | 'personal'
+    targetDate: string
+    progress: number
+    status: 'not-started' | 'in-progress' | 'completed' | 'overdue'
+    milestones: Array<{ title: string; completed: boolean }>
+  }>>>(() => safeGetFromStorage('tansiq_staff_goals', {}))
+  const [newGoal, setNewGoal] = useState({
+    title: '',
+    description: '',
+    category: 'performance' as const,
+    targetDate: '',
+    milestones: [] as string[]
+  })
+  
+  // Quick Stats Dashboard
+  const [showQuickStats, setShowQuickStats] = useState(false)
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
@@ -2090,6 +2212,381 @@ export function StaffDirectory() {
     return history.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   }, [])
 
+  // ==================== SKILLS & CERTIFICATIONS ====================
+  const addSkillToStaff = useCallback((staffId: string) => {
+    if (!newSkill.name.trim()) return
+    const skill = {
+      id: Date.now().toString(),
+      name: newSkill.name,
+      level: newSkill.level,
+      verified: false,
+    }
+    const updated = {
+      ...staffSkills,
+      [staffId]: [...(staffSkills[staffId] || []), skill]
+    }
+    setStaffSkills(updated)
+    safeSetToStorage('tansiq_staff_skills', updated)
+    setNewSkill({ name: '', level: 'intermediate' })
+    toast.success('Skill Added', `Added "${skill.name}" skill`)
+  }, [newSkill, staffSkills, toast])
+
+  const removeSkillFromStaff = useCallback((staffId: string, skillId: string) => {
+    const updated = {
+      ...staffSkills,
+      [staffId]: (staffSkills[staffId] || []).filter(s => s.id !== skillId)
+    }
+    setStaffSkills(updated)
+    safeSetToStorage('tansiq_staff_skills', updated)
+    toast.success('Skill Removed', 'Skill has been removed')
+  }, [staffSkills, toast])
+
+  const addCertificationToStaff = useCallback((staffId: string) => {
+    if (!newCert.name.trim()) return
+    const expiryDate = newCert.expiryDate || null
+    let status: 'valid' | 'expiring' | 'expired' = 'valid'
+    if (expiryDate) {
+      const expiry = new Date(expiryDate)
+      const now = new Date()
+      const thirtyDaysFromNow = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000)
+      if (expiry < now) status = 'expired'
+      else if (expiry < thirtyDaysFromNow) status = 'expiring'
+    }
+    const cert = {
+      id: Date.now().toString(),
+      name: newCert.name,
+      issuer: newCert.issuer,
+      issueDate: newCert.issueDate,
+      expiryDate,
+      status,
+    }
+    const updated = {
+      ...staffCertifications,
+      [staffId]: [...(staffCertifications[staffId] || []), cert]
+    }
+    setStaffCertifications(updated)
+    safeSetToStorage('tansiq_staff_certs', updated)
+    setNewCert({ name: '', issuer: '', issueDate: '', expiryDate: '' })
+    toast.success('Certification Added', `Added "${cert.name}" certification`)
+  }, [newCert, staffCertifications, toast])
+
+  const removeCertificationFromStaff = useCallback((staffId: string, certId: string) => {
+    const updated = {
+      ...staffCertifications,
+      [staffId]: (staffCertifications[staffId] || []).filter(c => c.id !== certId)
+    }
+    setStaffCertifications(updated)
+    safeSetToStorage('tansiq_staff_certs', updated)
+    toast.success('Certification Removed', 'Certification has been removed')
+  }, [staffCertifications, toast])
+
+  // ==================== RECOGNITION & AWARDS ====================
+  const giveRecognition = useCallback((staffId: string) => {
+    if (!newRecognition.title.trim()) return
+    const recognition = {
+      id: Date.now().toString(),
+      type: newRecognition.type,
+      title: newRecognition.title,
+      description: newRecognition.description,
+      givenBy: 'Current User',
+      date: new Date().toISOString(),
+      points: newRecognition.points,
+    }
+    const updated = {
+      ...staffRecognitions,
+      [staffId]: [...(staffRecognitions[staffId] || []), recognition]
+    }
+    setStaffRecognitions(updated)
+    safeSetToStorage('tansiq_staff_recognition', updated)
+    setNewRecognition({ type: 'kudos', title: '', description: '', points: 10 })
+    toast.success('Recognition Given! 🎉', `${recognition.title} awarded`)
+  }, [newRecognition, staffRecognitions, toast])
+
+  const getTotalRecognitionPoints = useCallback((staffId: string) => {
+    return (staffRecognitions[staffId] || []).reduce((sum, r) => sum + r.points, 0)
+  }, [staffRecognitions])
+
+  // ==================== TEAM MANAGEMENT ====================
+  const createTeam = useCallback(() => {
+    if (!newTeam.name.trim()) return
+    const team = {
+      id: Date.now().toString(),
+      name: newTeam.name,
+      description: newTeam.description,
+      leaderId: '',
+      memberIds: [],
+      color: newTeam.color,
+      createdAt: new Date().toISOString(),
+    }
+    const updated = [...teams, team]
+    setTeams(updated)
+    safeSetToStorage('tansiq_teams', updated)
+    setNewTeam({ name: '', description: '', color: '#3B82F6' })
+    toast.success('Team Created', `"${team.name}" team has been created`)
+  }, [newTeam, teams, toast])
+
+  const addMemberToTeam = useCallback((teamId: string, staffId: string) => {
+    const updated = teams.map(t => 
+      t.id === teamId && !t.memberIds.includes(staffId)
+        ? { ...t, memberIds: [...t.memberIds, staffId] }
+        : t
+    )
+    setTeams(updated)
+    safeSetToStorage('tansiq_teams', updated)
+    toast.success('Member Added', 'Staff member added to team')
+  }, [teams, toast])
+
+  const removeMemberFromTeam = useCallback((teamId: string, staffId: string) => {
+    const updated = teams.map(t => 
+      t.id === teamId
+        ? { ...t, memberIds: t.memberIds.filter(id => id !== staffId) }
+        : t
+    )
+    setTeams(updated)
+    safeSetToStorage('tansiq_teams', updated)
+    toast.success('Member Removed', 'Staff member removed from team')
+  }, [teams, toast])
+
+  const setTeamLead = useCallback((teamId: string, staffId: string) => {
+    const updated = teams.map(t => 
+      t.id === teamId ? { ...t, leaderId: staffId } : t
+    )
+    setTeams(updated)
+    safeSetToStorage('tansiq_teams', updated)
+    toast.success('Team Lead Set', 'Team leader has been assigned')
+  }, [teams, toast])
+
+  const deleteTeam = useCallback((teamId: string) => {
+    const updated = teams.filter(t => t.id !== teamId)
+    setTeams(updated)
+    safeSetToStorage('tansiq_teams', updated)
+    toast.success('Team Deleted', 'Team has been removed')
+  }, [teams, toast])
+
+  // ==================== EMERGENCY CONTACTS ====================
+  const addEmergencyContact = useCallback((staffId: string) => {
+    if (!newEmergencyContact.name.trim() || !newEmergencyContact.phone.trim()) return
+    const contact = {
+      id: Date.now().toString(),
+      ...newEmergencyContact,
+    }
+    const updated = {
+      ...staffEmergencyContacts,
+      [staffId]: [...(staffEmergencyContacts[staffId] || []), contact]
+    }
+    setStaffEmergencyContacts(updated)
+    safeSetToStorage('tansiq_emergency_contacts', updated)
+    setNewEmergencyContact({ name: '', relationship: '', phone: '', email: '', isPrimary: false })
+    toast.success('Emergency Contact Added', `Added ${contact.name}`)
+  }, [newEmergencyContact, staffEmergencyContacts, toast])
+
+  const removeEmergencyContact = useCallback((staffId: string, contactId: string) => {
+    const updated = {
+      ...staffEmergencyContacts,
+      [staffId]: (staffEmergencyContacts[staffId] || []).filter(c => c.id !== contactId)
+    }
+    setStaffEmergencyContacts(updated)
+    safeSetToStorage('tansiq_emergency_contacts', updated)
+    toast.success('Contact Removed', 'Emergency contact removed')
+  }, [staffEmergencyContacts, toast])
+
+  // ==================== STAFF GOALS ====================
+  const addGoalToStaff = useCallback((staffId: string) => {
+    if (!newGoal.title.trim()) return
+    const goal = {
+      id: Date.now().toString(),
+      title: newGoal.title,
+      description: newGoal.description,
+      category: newGoal.category,
+      targetDate: newGoal.targetDate,
+      progress: 0,
+      status: 'not-started' as const,
+      milestones: newGoal.milestones.map(m => ({ title: m, completed: false })),
+    }
+    const updated = {
+      ...staffGoals,
+      [staffId]: [...(staffGoals[staffId] || []), goal]
+    }
+    setStaffGoals(updated)
+    safeSetToStorage('tansiq_staff_goals', updated)
+    setNewGoal({ title: '', description: '', category: 'performance', targetDate: '', milestones: [] })
+    toast.success('Goal Added', `"${goal.title}" goal created`)
+  }, [newGoal, staffGoals, toast])
+
+  const updateGoalProgress = useCallback((staffId: string, goalId: string, progress: number) => {
+    const updated = {
+      ...staffGoals,
+      [staffId]: (staffGoals[staffId] || []).map(g => {
+        if (g.id !== goalId) return g
+        let status = g.status
+        if (progress === 100) status = 'completed'
+        else if (progress > 0) status = 'in-progress'
+        return { ...g, progress, status }
+      })
+    }
+    setStaffGoals(updated)
+    safeSetToStorage('tansiq_staff_goals', updated)
+  }, [staffGoals])
+
+  const deleteGoal = useCallback((staffId: string, goalId: string) => {
+    const updated = {
+      ...staffGoals,
+      [staffId]: (staffGoals[staffId] || []).filter(g => g.id !== goalId)
+    }
+    setStaffGoals(updated)
+    safeSetToStorage('tansiq_staff_goals', updated)
+    toast.success('Goal Removed', 'Goal has been deleted')
+  }, [staffGoals, toast])
+
+  // ==================== COMPUTED VALUES FOR NEW FEATURES ====================
+  
+  // Expiring certifications alert
+  const expiringCertifications = useMemo(() => {
+    const results: Array<{ staffId: string; staffName: string; certName: string; expiryDate: string }> = []
+    Object.entries(staffCertifications).forEach(([staffId, certs]) => {
+      const member = staff.find(s => s.id === staffId)
+      if (!member) return
+      certs.forEach(cert => {
+        if (cert.status === 'expiring' || cert.status === 'expired') {
+          results.push({
+            staffId,
+            staffName: `${member.firstName} ${member.lastName}`,
+            certName: cert.name,
+            expiryDate: cert.expiryDate || '',
+          })
+        }
+      })
+    })
+    return results
+  }, [staffCertifications, staff])
+
+  // Staff on leave today
+  const staffOnLeaveToday = useMemo(() => {
+    const today = new Date().toISOString().split('T')[0]
+    const results: Array<{ staffId: string; staffName: string; leaveType: string; endDate: string }> = []
+    Object.entries(staffLeaves).forEach(([staffId, leaves]) => {
+      const member = staff.find(s => s.id === staffId)
+      if (!member) return
+      leaves.forEach(leave => {
+        if (leave.status === 'approved' && leave.startDate <= today && leave.endDate >= today) {
+          results.push({
+            staffId,
+            staffName: `${member.firstName} ${member.lastName}`,
+            leaveType: leave.type,
+            endDate: leave.endDate,
+          })
+        }
+      })
+    })
+    return results
+  }, [staffLeaves, staff])
+
+  // Top recognized staff
+  const topRecognizedStaff = useMemo(() => {
+    return staff.map(s => ({
+      ...s,
+      totalPoints: getTotalRecognitionPoints(s.id),
+      recognitionCount: (staffRecognitions[s.id] || []).length,
+    }))
+    .filter(s => s.totalPoints > 0)
+    .sort((a, b) => b.totalPoints - a.totalPoints)
+    .slice(0, 10)
+  }, [staff, staffRecognitions, getTotalRecognitionPoints])
+
+  // Team statistics
+  const teamStats = useMemo(() => {
+    return teams.map(team => {
+      const members = staff.filter(s => team.memberIds.includes(s.id))
+      const avgPerformance = members.length > 0
+        ? members.reduce((sum, m) => sum + (m.performance || 0), 0) / members.length
+        : 0
+      const avgAttendance = members.length > 0
+        ? members.reduce((sum, m) => sum + (m.attendance || 0), 0) / members.length
+        : 0
+      const leader = staff.find(s => s.id === team.leaderId)
+      return {
+        ...team,
+        memberCount: members.length,
+        avgPerformance: Math.round(avgPerformance),
+        avgAttendance: Math.round(avgAttendance),
+        leaderName: leader ? `${leader.firstName} ${leader.lastName}` : 'No leader assigned',
+      }
+    })
+  }, [teams, staff])
+
+  // Performance trends (mock data for visualization)
+  const performanceTrends = useMemo(() => {
+    return staff.slice(0, 10).map(s => {
+      // Generate mock historical performance data
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
+      const basePerformance = s.performance || 70
+      return {
+        staffId: s.id,
+        staffName: `${s.firstName} ${s.lastName}`,
+        data: months.map((month, i) => ({
+          month,
+          performance: Math.max(0, Math.min(100, basePerformance + (Math.random() - 0.5) * 20 + i * 2)),
+        })),
+        currentPerformance: s.performance || 0,
+        trend: (s.performance || 70) > 75 ? 'up' : (s.performance || 70) < 60 ? 'down' : 'stable',
+      }
+    })
+  }, [staff])
+
+  // Quick stats
+  const quickStats = useMemo(() => {
+    const totalStaff = staff.length
+    const activeStaff = staff.filter(s => s.status === 'ACTIVE').length
+    const onLeave = staffOnLeaveToday.length
+    const avgPerformance = totalStaff > 0
+      ? Math.round(staff.reduce((sum, s) => sum + (s.performance || 0), 0) / totalStaff)
+      : 0
+    const avgAttendance = totalStaff > 0
+      ? Math.round(staff.reduce((sum, s) => sum + (s.attendance || 0), 0) / totalStaff)
+      : 0
+    const newThisMonth = staff.filter(s => {
+      if (!s.joinDate) return false
+      const joinDate = new Date(s.joinDate)
+      const now = new Date()
+      return joinDate.getMonth() === now.getMonth() && joinDate.getFullYear() === now.getFullYear()
+    }).length
+    const totalTeams = teams.length
+    const pendingReviews = staff.filter(s => {
+      if (!s.lastReviewDate) return true
+      const lastReview = new Date(s.lastReviewDate)
+      const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
+      return lastReview < ninetyDaysAgo
+    }).length
+    const expiringCerts = expiringCertifications.length
+    const criticalWorkload = workloadMetrics.filter(m => m.workloadLevel === 'critical').length
+
+    return {
+      totalStaff,
+      activeStaff,
+      onLeave,
+      avgPerformance,
+      avgAttendance,
+      newThisMonth,
+      totalTeams,
+      pendingReviews,
+      expiringCerts,
+      criticalWorkload,
+      departments: [...new Set(staff.map(s => s.department))].length,
+      roles: [...new Set(staff.map(s => s.role))].length,
+    }
+  }, [staff, staffOnLeaveToday, teams, expiringCertifications, workloadMetrics])
+
+  // Department distribution
+  const departmentDistribution = useMemo(() => {
+    const distribution: Record<string, number> = {}
+    staff.forEach(s => {
+      distribution[s.department] = (distribution[s.department] || 0) + 1
+    })
+    return Object.entries(distribution)
+      .map(([name, count]) => ({ name, count, percentage: Math.round((count / staff.length) * 100) }))
+      .sort((a, b) => b.count - a.count)
+  }, [staff])
+
   // Print entire directory
   const printDirectory = useCallback(() => {
     const printWindow = window.open('', '_blank')
@@ -2431,6 +2928,82 @@ export function StaffDirectory() {
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Staff Workload Overview</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          {/* Quick Stats Dashboard */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowQuickStats(true)}
+                >
+                  <LayoutDashboard className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Quick Stats Dashboard</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          {/* Team Management */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowTeamDialog(true)}
+                  className="relative"
+                >
+                  <UsersRound className="h-4 w-4" />
+                  {teams.length > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">
+                      {teams.length}
+                    </span>
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Team Management</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          {/* Performance Trends */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowPerformanceTrends(true)}
+                >
+                  <LineChart className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Performance Trends</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          {/* Leave Calendar */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowLeaveCalendar(true)}
+                  className="relative"
+                >
+                  <Palmtree className="h-4 w-4" />
+                  {staffOnLeaveToday.length > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 text-white text-xs flex items-center justify-center">
+                      {staffOnLeaveToday.length}
+                    </span>
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Leave Calendar ({staffOnLeaveToday.length} on leave)</TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
@@ -3410,6 +3983,46 @@ export function StaffDirectory() {
                           <PhoneCall className="h-4 w-4 mr-2" /> Quick Contact
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={(e) => { 
+                          e.stopPropagation(); 
+                          setSelectedStaff(member);
+                          setShowSkillsDialog(true);
+                        }}>
+                          <Award className="h-4 w-4 mr-2" /> Skills & Certs
+                          {((staffSkills[member.id]?.length || 0) + (staffCertifications[member.id]?.length || 0)) > 0 && (
+                            <Badge variant="secondary" className="ml-auto">
+                              {(staffSkills[member.id]?.length || 0) + (staffCertifications[member.id]?.length || 0)}
+                            </Badge>
+                          )}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => { 
+                          e.stopPropagation(); 
+                          setSelectedStaff(member);
+                          setShowRecognitionDialog(true);
+                        }}>
+                          <Trophy className="h-4 w-4 mr-2" /> Recognition
+                          {getTotalRecognitionPoints(member.id) > 0 && (
+                            <Badge variant="secondary" className="ml-auto">{getTotalRecognitionPoints(member.id)} pts</Badge>
+                          )}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => { 
+                          e.stopPropagation(); 
+                          setSelectedStaff(member);
+                          setShowGoalsDialog(true);
+                        }}>
+                          <Target className="h-4 w-4 mr-2" /> Goals
+                          {(staffGoals[member.id]?.length || 0) > 0 && (
+                            <Badge variant="secondary" className="ml-auto">{staffGoals[member.id]?.length}</Badge>
+                          )}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => { 
+                          e.stopPropagation(); 
+                          setSelectedStaff(member);
+                          setShowEmergencyContactsDialog(true);
+                        }}>
+                          <Siren className="h-4 w-4 mr-2" /> Emergency Contacts
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
                         <DropdownMenuItem 
                           className="text-destructive"
                           onClick={(e) => { e.stopPropagation(); confirmDelete(member) }}
@@ -3574,6 +4187,31 @@ export function StaffDirectory() {
                                 setShowContactActions(true);
                               }}>
                                 <PhoneCall className="h-4 w-4 mr-2" /> Quick Contact
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => { 
+                                setSelectedStaff(member);
+                                setShowSkillsDialog(true);
+                              }}>
+                                <Award className="h-4 w-4 mr-2" /> Skills & Certs
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => { 
+                                setSelectedStaff(member);
+                                setShowRecognitionDialog(true);
+                              }}>
+                                <Trophy className="h-4 w-4 mr-2" /> Recognition
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => { 
+                                setSelectedStaff(member);
+                                setShowGoalsDialog(true);
+                              }}>
+                                <Target className="h-4 w-4 mr-2" /> Goals
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => { 
+                                setSelectedStaff(member);
+                                setShowEmergencyContactsDialog(true);
+                              }}>
+                                <Siren className="h-4 w-4 mr-2" /> Emergency Contacts
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem className="text-destructive" onClick={() => confirmDelete(member)}>
@@ -5559,6 +6197,953 @@ export function StaffDirectory() {
               )}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Skills & Certifications Dialog */}
+      <Dialog open={showSkillsDialog} onOpenChange={setShowSkillsDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Award className="h-5 w-5 text-amber-500" />
+              Skills & Certifications
+              {selectedStaff && (
+                <span className="text-muted-foreground font-normal">
+                  - {selectedStaff.firstName} {selectedStaff.lastName}
+                </span>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedStaff && (
+            <Tabs defaultValue="skills" className="mt-4">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="skills">Skills</TabsTrigger>
+                <TabsTrigger value="certifications">Certifications</TabsTrigger>
+              </TabsList>
+              <TabsContent value="skills" className="space-y-4">
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Skill name..."
+                    value={newSkill.name}
+                    onChange={(e) => setNewSkill({ ...newSkill, name: e.target.value })}
+                  />
+                  <Select value={newSkill.level} onValueChange={(v) => setNewSkill({ ...newSkill, level: v as typeof newSkill.level })}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="beginner">Beginner</SelectItem>
+                      <SelectItem value="intermediate">Intermediate</SelectItem>
+                      <SelectItem value="advanced">Advanced</SelectItem>
+                      <SelectItem value="expert">Expert</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button onClick={() => addSkillToStaff(selectedStaff.id)}>
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="space-y-2">
+                  {(staffSkills[selectedStaff.id] || []).map(skill => (
+                    <div key={skill.id} className="flex items-center justify-between p-3 rounded-lg border">
+                      <div className="flex items-center gap-3">
+                        <Badge variant="outline" className={cn(
+                          skill.level === 'expert' && 'border-purple-500 text-purple-700',
+                          skill.level === 'advanced' && 'border-blue-500 text-blue-700',
+                          skill.level === 'intermediate' && 'border-green-500 text-green-700',
+                          skill.level === 'beginner' && 'border-gray-500 text-gray-700',
+                        )}>
+                          {skill.level}
+                        </Badge>
+                        <span className="font-medium">{skill.name}</span>
+                        {skill.verified && <BadgeCheck className="h-4 w-4 text-green-500" />}
+                      </div>
+                      <Button variant="ghost" size="icon" onClick={() => removeSkillFromStaff(selectedStaff.id, skill.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                  {(staffSkills[selectedStaff.id] || []).length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <GraduationCap className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                      <p>No skills recorded</p>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+              <TabsContent value="certifications" className="space-y-4">
+                <div className="grid grid-cols-2 gap-2">
+                  <Input
+                    placeholder="Certification name..."
+                    value={newCert.name}
+                    onChange={(e) => setNewCert({ ...newCert, name: e.target.value })}
+                  />
+                  <Input
+                    placeholder="Issuer..."
+                    value={newCert.issuer}
+                    onChange={(e) => setNewCert({ ...newCert, issuer: e.target.value })}
+                  />
+                  <div>
+                    <Label className="text-xs">Issue Date</Label>
+                    <Input
+                      type="date"
+                      value={newCert.issueDate}
+                      onChange={(e) => setNewCert({ ...newCert, issueDate: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Expiry Date (optional)</Label>
+                    <Input
+                      type="date"
+                      value={newCert.expiryDate}
+                      onChange={(e) => setNewCert({ ...newCert, expiryDate: e.target.value })}
+                    />
+                  </div>
+                </div>
+                <Button onClick={() => addCertificationToStaff(selectedStaff.id)} className="w-full">
+                  <Plus className="h-4 w-4 mr-2" /> Add Certification
+                </Button>
+                <div className="space-y-2">
+                  {(staffCertifications[selectedStaff.id] || []).map(cert => (
+                    <div key={cert.id} className={cn(
+                      "p-3 rounded-lg border",
+                      cert.status === 'expired' && 'border-red-300 bg-red-50 dark:bg-red-950/20',
+                      cert.status === 'expiring' && 'border-amber-300 bg-amber-50 dark:bg-amber-950/20',
+                    )}>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-medium flex items-center gap-2">
+                            {cert.name}
+                            <Badge className={cn(
+                              cert.status === 'valid' && 'bg-green-100 text-green-700',
+                              cert.status === 'expiring' && 'bg-amber-100 text-amber-700',
+                              cert.status === 'expired' && 'bg-red-100 text-red-700',
+                            )}>
+                              {cert.status}
+                            </Badge>
+                          </div>
+                          <div className="text-sm text-muted-foreground">{cert.issuer}</div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            Issued: {cert.issueDate ? format(parseISO(cert.issueDate), 'PP') : '-'}
+                            {cert.expiryDate && ` • Expires: ${format(parseISO(cert.expiryDate), 'PP')}`}
+                          </div>
+                        </div>
+                        <Button variant="ghost" size="icon" onClick={() => removeCertificationFromStaff(selectedStaff.id, cert.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                  {(staffCertifications[selectedStaff.id] || []).length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <FileCheck className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                      <p>No certifications recorded</p>
+                    </div>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Recognition & Awards Dialog */}
+      <Dialog open={showRecognitionDialog} onOpenChange={setShowRecognitionDialog}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-yellow-500" />
+              Recognition & Awards
+              {selectedStaff && (
+                <span className="text-muted-foreground font-normal">
+                  - {selectedStaff.firstName} {selectedStaff.lastName}
+                </span>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedStaff && (
+            <div className="space-y-4 mt-4">
+              {/* Total Points Display */}
+              <div className="p-4 rounded-lg bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-950/30 dark:to-yellow-950/30 border border-amber-200 dark:border-amber-800">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
+                      <Crown className="h-6 w-6 text-amber-600" />
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-amber-700 dark:text-amber-400">
+                        {getTotalRecognitionPoints(selectedStaff.id)} pts
+                      </div>
+                      <div className="text-sm text-amber-600">Total Recognition Points</div>
+                    </div>
+                  </div>
+                  <Badge className="bg-amber-100 text-amber-700">
+                    {(staffRecognitions[selectedStaff.id] || []).length} awards
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Give Recognition Form */}
+              <div className="space-y-3 p-4 rounded-lg border bg-muted/30">
+                <Label className="font-medium">Give Recognition</Label>
+                <Select value={newRecognition.type} onValueChange={(v) => setNewRecognition({ ...newRecognition, type: v as typeof newRecognition.type })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="kudos">👏 Kudos</SelectItem>
+                    <SelectItem value="award">🏆 Award</SelectItem>
+                    <SelectItem value="achievement">⭐ Achievement</SelectItem>
+                    <SelectItem value="milestone">🎯 Milestone</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Input
+                  placeholder="Recognition title..."
+                  value={newRecognition.title}
+                  onChange={(e) => setNewRecognition({ ...newRecognition, title: e.target.value })}
+                />
+                <Textarea
+                  placeholder="Description (optional)..."
+                  value={newRecognition.description}
+                  onChange={(e) => setNewRecognition({ ...newRecognition, description: e.target.value })}
+                  className="min-h-[60px]"
+                />
+                <div className="flex items-center gap-2">
+                  <Label className="text-sm">Points:</Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={newRecognition.points}
+                    onChange={(e) => setNewRecognition({ ...newRecognition, points: parseInt(e.target.value) || 10 })}
+                    className="w-20"
+                  />
+                  <Button onClick={() => giveRecognition(selectedStaff.id)} className="ml-auto">
+                    <ThumbsUp className="h-4 w-4 mr-2" /> Give Recognition
+                  </Button>
+                </div>
+              </div>
+
+              {/* Recognition History */}
+              <ScrollArea className="h-[250px]">
+                <div className="space-y-2">
+                  {(staffRecognitions[selectedStaff.id] || [])
+                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                    .map(rec => (
+                      <div key={rec.id} className="p-3 rounded-lg border">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-2">
+                            {rec.type === 'kudos' && <ThumbsUp className="h-4 w-4 text-blue-500" />}
+                            {rec.type === 'award' && <Trophy className="h-4 w-4 text-yellow-500" />}
+                            {rec.type === 'achievement' && <Star className="h-4 w-4 text-purple-500" />}
+                            {rec.type === 'milestone' && <Target className="h-4 w-4 text-green-500" />}
+                            <span className="font-medium">{rec.title}</span>
+                          </div>
+                          <Badge variant="outline">+{rec.points} pts</Badge>
+                        </div>
+                        {rec.description && (
+                          <p className="text-sm text-muted-foreground mt-1">{rec.description}</p>
+                        )}
+                        <div className="text-xs text-muted-foreground mt-2">
+                          By {rec.givenBy} • {format(parseISO(rec.date), 'PPp')}
+                        </div>
+                      </div>
+                    ))}
+                  {(staffRecognitions[selectedStaff.id] || []).length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Medal className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                      <p>No recognitions yet</p>
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Team Management Dialog */}
+      <Dialog open={showTeamDialog} onOpenChange={setShowTeamDialog}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UsersRound className="h-5 w-5 text-blue-500" />
+              Team Management
+            </DialogTitle>
+            <DialogDescription>
+              Create and manage staff teams
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            {/* Create Team Form */}
+            <div className="flex gap-2 p-4 rounded-lg border bg-muted/30">
+              <Input
+                placeholder="Team name..."
+                value={newTeam.name}
+                onChange={(e) => setNewTeam({ ...newTeam, name: e.target.value })}
+                className="flex-1"
+              />
+              <Input
+                placeholder="Description..."
+                value={newTeam.description}
+                onChange={(e) => setNewTeam({ ...newTeam, description: e.target.value })}
+                className="flex-1"
+              />
+              <Input
+                type="color"
+                value={newTeam.color}
+                onChange={(e) => setNewTeam({ ...newTeam, color: e.target.value })}
+                className="w-14"
+              />
+              <Button onClick={createTeam}>
+                <Plus className="h-4 w-4 mr-2" /> Create
+              </Button>
+            </div>
+
+            {/* Teams List */}
+            <div className="grid grid-cols-2 gap-4">
+              {teamStats.map(team => (
+                <Card key={team.id} className="overflow-hidden">
+                  <div className="h-2" style={{ backgroundColor: team.color }} />
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-lg">{team.name}</CardTitle>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem onClick={() => setSelectedTeamId(team.id)}>
+                            <UserPlus className="h-4 w-4 mr-2" /> Add Members
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive" onClick={() => deleteTeam(team.id)}>
+                            <Trash2 className="h-4 w-4 mr-2" /> Delete Team
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                    <CardDescription>{team.description || 'No description'}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center gap-2 text-sm">
+                      <Crown className="h-4 w-4 text-amber-500" />
+                      <span className="text-muted-foreground">Lead:</span>
+                      <span>{team.leaderName}</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div className="p-2 rounded bg-muted">
+                        <div className="font-bold">{team.memberCount}</div>
+                        <div className="text-xs text-muted-foreground">Members</div>
+                      </div>
+                      <div className="p-2 rounded bg-muted">
+                        <div className="font-bold text-green-600">{team.avgPerformance}%</div>
+                        <div className="text-xs text-muted-foreground">Perf</div>
+                      </div>
+                      <div className="p-2 rounded bg-muted">
+                        <div className="font-bold text-blue-600">{team.avgAttendance}%</div>
+                        <div className="text-xs text-muted-foreground">Attend</div>
+                      </div>
+                    </div>
+                    {/* Team Members */}
+                    {selectedTeamId === team.id && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="space-y-2 pt-2 border-t"
+                      >
+                        <Label className="text-sm">Add Staff to Team:</Label>
+                        <ScrollArea className="h-32">
+                          {staff.filter(s => !team.memberIds.includes(s.id)).slice(0, 10).map(s => (
+                            <div key={s.id} className="flex items-center justify-between py-1 px-2 hover:bg-muted rounded">
+                              <span className="text-sm">{s.firstName} {s.lastName}</span>
+                              <Button variant="ghost" size="sm" onClick={() => addMemberToTeam(team.id, s.id)}>
+                                <Plus className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ))}
+                        </ScrollArea>
+                        <Label className="text-sm">Current Members:</Label>
+                        {team.memberIds.map(memberId => {
+                          const member = staff.find(s => s.id === memberId)
+                          if (!member) return null
+                          return (
+                            <div key={memberId} className="flex items-center justify-between py-1 px-2 bg-muted/50 rounded">
+                              <span className="text-sm">{member.firstName} {member.lastName}</span>
+                              <div className="flex gap-1">
+                                <Button variant="ghost" size="sm" onClick={() => setTeamLead(team.id, memberId)}>
+                                  <Crown className="h-3 w-3" />
+                                </Button>
+                                <Button variant="ghost" size="sm" onClick={() => removeMemberFromTeam(team.id, memberId)}>
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </motion.div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+              {teams.length === 0 && (
+                <div className="col-span-2 text-center py-12 text-muted-foreground">
+                  <UsersRound className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p>No teams created yet</p>
+                  <p className="text-sm">Create your first team above</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Emergency Contacts Dialog */}
+      <Dialog open={showEmergencyContactsDialog} onOpenChange={setShowEmergencyContactsDialog}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Siren className="h-5 w-5 text-red-500" />
+              Emergency Contacts
+              {selectedStaff && (
+                <span className="text-muted-foreground font-normal">
+                  - {selectedStaff.firstName} {selectedStaff.lastName}
+                </span>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedStaff && (
+            <div className="space-y-4 mt-4">
+              <div className="space-y-3 p-4 rounded-lg border bg-muted/30">
+                <div className="grid grid-cols-2 gap-2">
+                  <Input
+                    placeholder="Contact name..."
+                    value={newEmergencyContact.name}
+                    onChange={(e) => setNewEmergencyContact({ ...newEmergencyContact, name: e.target.value })}
+                  />
+                  <Input
+                    placeholder="Relationship..."
+                    value={newEmergencyContact.relationship}
+                    onChange={(e) => setNewEmergencyContact({ ...newEmergencyContact, relationship: e.target.value })}
+                  />
+                  <Input
+                    placeholder="Phone number..."
+                    value={newEmergencyContact.phone}
+                    onChange={(e) => setNewEmergencyContact({ ...newEmergencyContact, phone: e.target.value })}
+                  />
+                  <Input
+                    placeholder="Email (optional)..."
+                    value={newEmergencyContact.email}
+                    onChange={(e) => setNewEmergencyContact({ ...newEmergencyContact, email: e.target.value })}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={newEmergencyContact.isPrimary}
+                      onChange={(e) => setNewEmergencyContact({ ...newEmergencyContact, isPrimary: e.target.checked })}
+                    />
+                    Primary Contact
+                  </label>
+                  <Button onClick={() => addEmergencyContact(selectedStaff.id)} size="sm">
+                    <Plus className="h-4 w-4 mr-1" /> Add Contact
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                {(staffEmergencyContacts[selectedStaff.id] || []).map(contact => (
+                  <div key={contact.id} className={cn(
+                    "p-3 rounded-lg border",
+                    contact.isPrimary && "border-red-300 bg-red-50/50 dark:bg-red-950/20"
+                  )}>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="font-medium flex items-center gap-2">
+                          {contact.name}
+                          {contact.isPrimary && <Badge className="bg-red-100 text-red-700">Primary</Badge>}
+                        </div>
+                        <div className="text-sm text-muted-foreground">{contact.relationship}</div>
+                        <div className="flex gap-4 mt-2 text-sm">
+                          <span className="flex items-center gap-1">
+                            <Phone className="h-3 w-3" /> {contact.phone}
+                          </span>
+                          {contact.email && (
+                            <span className="flex items-center gap-1">
+                              <Mail className="h-3 w-3" /> {contact.email}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <Button variant="ghost" size="icon" onClick={() => removeEmergencyContact(selectedStaff.id, contact.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                {(staffEmergencyContacts[selectedStaff.id] || []).length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <HeartHandshake className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                    <p>No emergency contacts</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Staff Goals Dialog */}
+      <Dialog open={showGoalsDialog} onOpenChange={setShowGoalsDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5 text-green-500" />
+              Goals & Objectives
+              {selectedStaff && (
+                <span className="text-muted-foreground font-normal">
+                  - {selectedStaff.firstName} {selectedStaff.lastName}
+                </span>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedStaff && (
+            <div className="space-y-4 mt-4">
+              {/* Add Goal Form */}
+              <div className="space-y-3 p-4 rounded-lg border bg-muted/30">
+                <Input
+                  placeholder="Goal title..."
+                  value={newGoal.title}
+                  onChange={(e) => setNewGoal({ ...newGoal, title: e.target.value })}
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <Select value={newGoal.category} onValueChange={(v) => setNewGoal({ ...newGoal, category: v as typeof newGoal.category })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="performance">📈 Performance</SelectItem>
+                      <SelectItem value="skill">🎓 Skill Development</SelectItem>
+                      <SelectItem value="project">📋 Project</SelectItem>
+                      <SelectItem value="personal">🌟 Personal Growth</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    type="date"
+                    value={newGoal.targetDate}
+                    onChange={(e) => setNewGoal({ ...newGoal, targetDate: e.target.value })}
+                  />
+                </div>
+                <Textarea
+                  placeholder="Description..."
+                  value={newGoal.description}
+                  onChange={(e) => setNewGoal({ ...newGoal, description: e.target.value })}
+                  className="min-h-[60px]"
+                />
+                <Button onClick={() => addGoalToStaff(selectedStaff.id)} className="w-full">
+                  <Plus className="h-4 w-4 mr-2" /> Add Goal
+                </Button>
+              </div>
+
+              {/* Goals List */}
+              <ScrollArea className="h-[350px]">
+                <div className="space-y-3">
+                  {(staffGoals[selectedStaff.id] || []).map(goal => (
+                    <Card key={goal.id} className={cn(
+                      goal.status === 'completed' && 'border-green-300 bg-green-50/30 dark:bg-green-950/10',
+                      goal.status === 'overdue' && 'border-red-300 bg-red-50/30 dark:bg-red-950/10',
+                    )}>
+                      <CardHeader className="pb-2">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-2">
+                            {goal.category === 'performance' && <TrendingUp className="h-4 w-4 text-blue-500" />}
+                            {goal.category === 'skill' && <GraduationCap className="h-4 w-4 text-purple-500" />}
+                            {goal.category === 'project' && <FolderKanban className="h-4 w-4 text-orange-500" />}
+                            {goal.category === 'personal' && <Sparkles className="h-4 w-4 text-pink-500" />}
+                            <CardTitle className="text-base">{goal.title}</CardTitle>
+                          </div>
+                          <Badge className={cn(
+                            goal.status === 'not-started' && 'bg-gray-100 text-gray-700',
+                            goal.status === 'in-progress' && 'bg-blue-100 text-blue-700',
+                            goal.status === 'completed' && 'bg-green-100 text-green-700',
+                            goal.status === 'overdue' && 'bg-red-100 text-red-700',
+                          )}>
+                            {goal.status.replace('-', ' ')}
+                          </Badge>
+                        </div>
+                        {goal.description && (
+                          <CardDescription>{goal.description}</CardDescription>
+                        )}
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">
+                            Target: {goal.targetDate ? format(parseISO(goal.targetDate), 'PP') : '-'}
+                          </span>
+                          <span className="font-medium">{goal.progress}% complete</span>
+                        </div>
+                        <div className="h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className={cn(
+                              "h-full transition-all",
+                              goal.progress === 100 ? 'bg-green-500' : 'bg-primary'
+                            )}
+                            style={{ width: `${goal.progress}%` }}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex gap-1">
+                            {[0, 25, 50, 75, 100].map(p => (
+                              <Button
+                                key={p}
+                                variant={goal.progress === p ? 'default' : 'outline'}
+                                size="sm"
+                                className="h-7 w-10"
+                                onClick={() => updateGoalProgress(selectedStaff.id, goal.id, p)}
+                              >
+                                {p}%
+                              </Button>
+                            ))}
+                          </div>
+                          <Button variant="ghost" size="icon" onClick={() => deleteGoal(selectedStaff.id, goal.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                  {(staffGoals[selectedStaff.id] || []).length === 0 && (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <Rocket className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                      <p>No goals set</p>
+                      <p className="text-sm">Add goals to track progress</p>
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Performance Trends Dialog */}
+      <Dialog open={showPerformanceTrends} onOpenChange={setShowPerformanceTrends}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <LineChart className="h-5 w-5 text-blue-500" />
+              Performance Trends
+            </DialogTitle>
+            <DialogDescription>
+              6-month performance overview for top staff members
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            {performanceTrends.map(trend => (
+              <div key={trend.staffId} className="p-4 rounded-lg border">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <span className="font-medium">{trend.staffName}</span>
+                    <Badge className={cn(
+                      trend.trend === 'up' && 'bg-green-100 text-green-700',
+                      trend.trend === 'down' && 'bg-red-100 text-red-700',
+                      trend.trend === 'stable' && 'bg-gray-100 text-gray-700',
+                    )}>
+                      {trend.trend === 'up' && <TrendingUp className="h-3 w-3 mr-1" />}
+                      {trend.trend === 'down' && <TrendingDown className="h-3 w-3 mr-1" />}
+                      {trend.trend === 'up' ? 'Improving' : trend.trend === 'down' ? 'Declining' : 'Stable'}
+                    </Badge>
+                  </div>
+                  <span className="text-lg font-bold">{trend.currentPerformance}%</span>
+                </div>
+                {/* Simple bar chart representation */}
+                <div className="flex items-end gap-2 h-16">
+                  {trend.data.map((d, i) => (
+                    <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                      <div 
+                        className={cn(
+                          "w-full rounded-t transition-all",
+                          d.performance >= 80 ? 'bg-green-500' : d.performance >= 60 ? 'bg-amber-500' : 'bg-red-500'
+                        )}
+                        style={{ height: `${(d.performance / 100) * 48}px` }}
+                      />
+                      <span className="text-xs text-muted-foreground">{d.month}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Quick Stats Dashboard */}
+      <Dialog open={showQuickStats} onOpenChange={setShowQuickStats}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <LayoutDashboard className="h-5 w-5 text-indigo-500" />
+              Quick Stats Dashboard
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 mt-4">
+            {/* Key Metrics */}
+            <div className="grid grid-cols-4 gap-4">
+              <Card className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                    <Users className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold">{quickStats.totalStaff}</div>
+                    <div className="text-xs text-muted-foreground">Total Staff</div>
+                  </div>
+                </div>
+              </Card>
+              <Card className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+                    <UserCheck className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold">{quickStats.activeStaff}</div>
+                    <div className="text-xs text-muted-foreground">Active</div>
+                  </div>
+                </div>
+              </Card>
+              <Card className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
+                    <Palmtree className="h-5 w-5 text-amber-600" />
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold">{quickStats.onLeave}</div>
+                    <div className="text-xs text-muted-foreground">On Leave</div>
+                  </div>
+                </div>
+              </Card>
+              <Card className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
+                    <UserPlus className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold">{quickStats.newThisMonth}</div>
+                    <div className="text-xs text-muted-foreground">New This Month</div>
+                  </div>
+                </div>
+              </Card>
+            </div>
+
+            {/* Performance & Attendance */}
+            <div className="grid grid-cols-2 gap-4">
+              <Card className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="font-medium">Avg Performance</span>
+                  <Badge className={cn(
+                    quickStats.avgPerformance >= 80 ? 'bg-green-100 text-green-700' :
+                    quickStats.avgPerformance >= 60 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
+                  )}>
+                    {quickStats.avgPerformance}%
+                  </Badge>
+                </div>
+                <div className="h-3 bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className={cn(
+                      "h-full",
+                      quickStats.avgPerformance >= 80 ? 'bg-green-500' :
+                      quickStats.avgPerformance >= 60 ? 'bg-amber-500' : 'bg-red-500'
+                    )}
+                    style={{ width: `${quickStats.avgPerformance}%` }}
+                  />
+                </div>
+              </Card>
+              <Card className="p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="font-medium">Avg Attendance</span>
+                  <Badge className={cn(
+                    quickStats.avgAttendance >= 90 ? 'bg-green-100 text-green-700' :
+                    quickStats.avgAttendance >= 75 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
+                  )}>
+                    {quickStats.avgAttendance}%
+                  </Badge>
+                </div>
+                <div className="h-3 bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className={cn(
+                      "h-full",
+                      quickStats.avgAttendance >= 90 ? 'bg-green-500' :
+                      quickStats.avgAttendance >= 75 ? 'bg-amber-500' : 'bg-red-500'
+                    )}
+                    style={{ width: `${quickStats.avgAttendance}%` }}
+                  />
+                </div>
+              </Card>
+            </div>
+
+            {/* Alerts Row */}
+            <div className="grid grid-cols-4 gap-4">
+              <Card className="p-4 border-l-4 border-l-amber-500">
+                <div className="text-lg font-bold text-amber-600">{quickStats.pendingReviews}</div>
+                <div className="text-sm text-muted-foreground">Pending Reviews</div>
+              </Card>
+              <Card className="p-4 border-l-4 border-l-red-500">
+                <div className="text-lg font-bold text-red-600">{quickStats.expiringCerts}</div>
+                <div className="text-sm text-muted-foreground">Expiring Certs</div>
+              </Card>
+              <Card className="p-4 border-l-4 border-l-orange-500">
+                <div className="text-lg font-bold text-orange-600">{quickStats.criticalWorkload}</div>
+                <div className="text-sm text-muted-foreground">Critical Workload</div>
+              </Card>
+              <Card className="p-4 border-l-4 border-l-blue-500">
+                <div className="text-lg font-bold text-blue-600">{quickStats.totalTeams}</div>
+                <div className="text-sm text-muted-foreground">Teams</div>
+              </Card>
+            </div>
+
+            {/* Department Distribution */}
+            <Card className="p-4">
+              <h4 className="font-medium mb-3">Department Distribution</h4>
+              <div className="space-y-2">
+                {departmentDistribution.slice(0, 6).map(dept => (
+                  <div key={dept.name} className="flex items-center gap-3">
+                    <span className="w-24 text-sm truncate">{dept.name}</span>
+                    <div className="flex-1 h-6 bg-muted rounded overflow-hidden">
+                      <div 
+                        className="h-full bg-primary/70 flex items-center justify-end pr-2"
+                        style={{ width: `${dept.percentage}%` }}
+                      >
+                        {dept.percentage > 15 && (
+                          <span className="text-xs text-white font-medium">{dept.count}</span>
+                        )}
+                      </div>
+                    </div>
+                    <span className="text-sm text-muted-foreground w-12">{dept.percentage}%</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            {/* Top Recognized Staff */}
+            {topRecognizedStaff.length > 0 && (
+              <Card className="p-4">
+                <h4 className="font-medium mb-3 flex items-center gap-2">
+                  <Trophy className="h-4 w-4 text-amber-500" />
+                  Top Recognized Staff
+                </h4>
+                <div className="space-y-2">
+                  {topRecognizedStaff.slice(0, 5).map((s, i) => (
+                    <div key={s.id} className="flex items-center justify-between p-2 rounded bg-muted/50">
+                      <div className="flex items-center gap-3">
+                        <span className={cn(
+                          "w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold",
+                          i === 0 && "bg-yellow-100 text-yellow-700",
+                          i === 1 && "bg-gray-100 text-gray-700",
+                          i === 2 && "bg-orange-100 text-orange-700",
+                          i > 2 && "bg-muted text-muted-foreground"
+                        )}>
+                          {i + 1}
+                        </span>
+                        <span>{s.firstName} {s.lastName}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">{s.recognitionCount} awards</Badge>
+                        <span className="font-bold text-amber-600">{s.totalPoints} pts</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Leave Calendar Dialog */}
+      <Dialog open={showLeaveCalendar} onOpenChange={setShowLeaveCalendar}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CalendarCheck className="h-5 w-5 text-teal-500" />
+              Leave Calendar
+            </DialogTitle>
+            <DialogDescription>
+              Staff currently on leave or with upcoming leaves
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            {/* On Leave Today */}
+            <div>
+              <h4 className="font-medium mb-2 flex items-center gap-2">
+                <Palmtree className="h-4 w-4" /> On Leave Today ({staffOnLeaveToday.length})
+              </h4>
+              {staffOnLeaveToday.length > 0 ? (
+                <div className="space-y-2">
+                  {staffOnLeaveToday.map((leave, i) => (
+                    <div key={i} className="flex items-center justify-between p-3 rounded-lg border">
+                      <div>
+                        <div className="font-medium">{leave.staffName}</div>
+                        <div className="text-sm text-muted-foreground capitalize">{leave.leaveType} leave</div>
+                      </div>
+                      <Badge variant="outline">Until {format(parseISO(leave.endDate), 'PP')}</Badge>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6 text-muted-foreground border rounded-lg">
+                  <Umbrella className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">No one on leave today</p>
+                </div>
+              )}
+            </div>
+
+            {/* All Approved Leaves */}
+            <div>
+              <h4 className="font-medium mb-2">All Approved Leaves</h4>
+              <ScrollArea className="h-[250px]">
+                <div className="space-y-2">
+                  {Object.entries(staffLeaves).flatMap(([staffId, leaves]) => {
+                    const member = staff.find(s => s.id === staffId)
+                    if (!member) return []
+                    return leaves.filter(l => l.status === 'approved').map(leave => ({
+                      ...leave,
+                      staffName: `${member.firstName} ${member.lastName}`,
+                      staffId,
+                    }))
+                  })
+                  .sort((a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+                  .map(leave => (
+                    <div key={leave.id} className="flex items-center justify-between p-3 rounded-lg border">
+                      <div>
+                        <div className="font-medium">{leave.staffName}</div>
+                        <div className="text-sm text-muted-foreground capitalize flex items-center gap-2">
+                          <Badge variant="outline" className={cn(
+                            leave.type === 'annual' && 'border-green-300',
+                            leave.type === 'sick' && 'border-red-300',
+                            leave.type === 'personal' && 'border-blue-300',
+                          )}>
+                            {leave.type}
+                          </Badge>
+                          {leave.reason}
+                        </div>
+                      </div>
+                      <div className="text-right text-sm">
+                        <div>{format(parseISO(leave.startDate), 'PP')}</div>
+                        <div className="text-muted-foreground">to {format(parseISO(leave.endDate), 'PP')}</div>
+                      </div>
+                    </div>
+                  ))}
+                  {Object.values(staffLeaves).flat().filter(l => l.status === 'approved').length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <CalendarX className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                      <p>No approved leaves</p>
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
