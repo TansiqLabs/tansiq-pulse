@@ -21,6 +21,9 @@ import {
   Beds,
   Notifications,
   Shifts,
+  Documents,
+  Waitlist,
+  Claims,
 } from '@/pages'
 
 function AppContent() {
@@ -47,6 +50,9 @@ function AppContent() {
           <Route path="/inventory" element={<PageErrorBoundary><Inventory /></PageErrorBoundary>} />
           <Route path="/beds" element={<PageErrorBoundary><Beds /></PageErrorBoundary>} />
           <Route path="/notifications" element={<PageErrorBoundary><Notifications /></PageErrorBoundary>} />
+          <Route path="/documents" element={<PageErrorBoundary><Documents /></PageErrorBoundary>} />
+          <Route path="/waitlist" element={<PageErrorBoundary><Waitlist /></PageErrorBoundary>} />
+          <Route path="/claims" element={<PageErrorBoundary><Claims /></PageErrorBoundary>} />
           <Route path="/settings" element={<PageErrorBoundary><Settings /></PageErrorBoundary>} />
         </Routes>
       </Layout>

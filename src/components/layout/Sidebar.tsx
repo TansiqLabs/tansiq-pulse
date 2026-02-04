@@ -19,6 +19,9 @@ import {
   Bell,
   Clock,
   Boxes,
+  FileText,
+  ClipboardList,
+  Shield,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -34,8 +37,10 @@ const navigation = [
   { name: 'Appointments', href: '/appointments', icon: CalendarDays },
   { name: 'Schedule', href: '/schedule', icon: Calendar },
   { name: 'Queue', href: '/queue', icon: ListOrdered },
+  { name: 'Waitlist', href: '/waitlist', icon: ClipboardList },
   { name: 'Billing', href: '/billing', icon: Receipt },
   { name: 'Expenses', href: '/expenses', icon: Wallet },
+  { name: 'Claims', href: '/claims', icon: Shield },
   { name: 'Reports', href: '/reports', icon: BarChart3 },
   { name: 'Analytics', href: '/analytics', icon: PieChart },
   { name: 'Doctors', href: '/doctors', icon: Stethoscope },
@@ -43,6 +48,7 @@ const navigation = [
   { name: 'Shifts', href: '/shifts', icon: Clock },
   { name: 'Beds', href: '/beds', icon: BedDouble },
   { name: 'Inventory', href: '/inventory', icon: Boxes },
+  { name: 'Documents', href: '/documents', icon: FileText },
   { name: 'Services', href: '/services', icon: Package },
   { name: 'Notifications', href: '/notifications', icon: Bell },
   { name: 'Settings', href: '/settings', icon: Settings },
