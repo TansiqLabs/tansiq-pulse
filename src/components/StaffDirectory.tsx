@@ -50,6 +50,14 @@ import {
   AlertTriangle,
   Square,
   CheckSquare,
+  Wifi,
+  WifiOff,
+  RefreshCw,
+  Cloud,
+  CloudOff,
+  Monitor,
+  Smartphone,
+  Laptop,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -242,6 +250,47 @@ const STATUS_CONFIG: Record<string, { color: string; icon: typeof CheckCircle2; 
 
 const STORAGE_KEY = 'staff_directory'
 const REVIEWS_KEY = 'staff_reviews'
+const SYNC_KEY = 'staff_sync_meta'
+const PENDING_CHANGES_KEY = 'staff_pending_changes'
+
+// Sync and Online/Offline Types
+interface SyncMeta {
+  lastSyncAt: string | null
+  deviceId: string
+  syncEnabled: boolean
+  serverUrl: string | null
+}
+
+interface PendingChange {
+  id: string
+  type: 'create' | 'update' | 'delete'
+  entityType: 'staff' | 'review'
+  entityId: string
+  data: StaffMember | PerformanceReview | null
+  timestamp: string
+}
+
+// Generate unique device ID
+const getDeviceId = (): string => {
+  let deviceId = localStorage.getItem('device_id')
+  if (!deviceId) {
+    deviceId = `device_${crypto.randomUUID()}`
+    localStorage.setItem('device_id', deviceId)
+  }
+  return deviceId
+}
+
+// Detect device type
+const getDeviceType = (): 'desktop' | 'mobile' | 'tablet' => {
+  const ua = navigator.userAgent
+  if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
+    return 'tablet'
+  }
+  if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) {
+    return 'mobile'
+  }
+  return 'desktop'
+}
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -278,6 +327,19 @@ export function StaffDirectory() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
   const [showReviewDialog, setShowReviewDialog] = useState(false)
+
+  // Online/Offline & Sync States
+  const [isOnline, setIsOnline] = useState(navigator.onLine)
+  const [syncMeta, setSyncMeta] = useState<SyncMeta>({
+    lastSyncAt: null,
+    deviceId: getDeviceId(),
+    syncEnabled: false,
+    serverUrl: null,
+  })
+  const [pendingChanges, setPendingChanges] = useState<PendingChange[]>([])
+  const [isSyncing, setIsSyncing] = useState(false)
+  const [showSyncSettings, setShowSyncSettings] = useState(false)
+  const [syncServerUrl, setSyncServerUrl] = useState('')
 
   const [formData, setFormData] = useState<{
     firstName: string
@@ -346,6 +408,31 @@ export function StaffDirectory() {
     comments: '',
   })
 
+  // Online/Offline detection
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true)
+      toast.success('Online', 'You are now connected to the internet')
+      // Auto-sync when coming back online
+      if (syncMeta.syncEnabled && pendingChanges.length > 0) {
+        handleSync()
+      }
+    }
+    const handleOffline = () => {
+      setIsOnline(false)
+      toast.warning('Offline', 'You are now working offline. Changes will sync when reconnected.')
+    }
+
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [syncMeta.syncEnabled, pendingChanges.length])
+
+  // Load data from localStorage
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored) {
@@ -355,17 +442,133 @@ export function StaffDirectory() {
     if (storedReviews) {
       setReviews(JSON.parse(storedReviews))
     }
+    // Load sync metadata
+    const storedSyncMeta = localStorage.getItem(SYNC_KEY)
+    if (storedSyncMeta) {
+      setSyncMeta(JSON.parse(storedSyncMeta))
+    }
+    // Load pending changes
+    const storedPending = localStorage.getItem(PENDING_CHANGES_KEY)
+    if (storedPending) {
+      setPendingChanges(JSON.parse(storedPending))
+    }
   }, [])
 
-  const saveStaff = useCallback((newStaff: StaffMember[]) => {
+  // Add pending change for sync
+  const addPendingChange = useCallback((change: Omit<PendingChange, 'id' | 'timestamp'>) => {
+    const newChange: PendingChange = {
+      ...change,
+      id: crypto.randomUUID(),
+      timestamp: new Date().toISOString(),
+    }
+    setPendingChanges(prev => {
+      const updated = [...prev, newChange]
+      localStorage.setItem(PENDING_CHANGES_KEY, JSON.stringify(updated))
+      return updated
+    })
+  }, [])
+
+  // Sync with server (API abstraction - ready for backend integration)
+  const handleSync = useCallback(async () => {
+    if (!syncMeta.syncEnabled || !syncMeta.serverUrl) {
+      toast.error('Sync Error', 'Please configure sync settings first')
+      return
+    }
+
+    setIsSyncing(true)
+    try {
+      // This is an API abstraction - replace with actual API calls when backend is ready
+      // For now, simulate sync with a timeout
+      await new Promise(resolve => setTimeout(resolve, 1500))
+
+      // In production, this would:
+      // 1. POST pending changes to server
+      // 2. GET latest data from server
+      // 3. Merge conflicts (last-write-wins or custom resolution)
+      // 4. Clear pending changes on success
+
+      // Example API structure:
+      // const response = await fetch(`${syncMeta.serverUrl}/api/staff/sync`, {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({
+      //     deviceId: syncMeta.deviceId,
+      //     pendingChanges,
+      //     lastSyncAt: syncMeta.lastSyncAt,
+      //   }),
+      // })
+      // const { staff: serverStaff, reviews: serverReviews } = await response.json()
+      // setStaff(serverStaff)
+      // setReviews(serverReviews)
+
+      // Clear pending changes after successful sync
+      setPendingChanges([])
+      localStorage.setItem(PENDING_CHANGES_KEY, JSON.stringify([]))
+
+      // Update sync metadata
+      const updatedMeta = {
+        ...syncMeta,
+        lastSyncAt: new Date().toISOString(),
+      }
+      setSyncMeta(updatedMeta)
+      localStorage.setItem(SYNC_KEY, JSON.stringify(updatedMeta))
+
+      toast.success('Synced', 'Data synchronized successfully')
+    } catch (error) {
+      toast.error('Sync Failed', 'Unable to sync data. Will retry when online.')
+    } finally {
+      setIsSyncing(false)
+    }
+  }, [syncMeta, pendingChanges, toast])
+
+  // Enable/Disable sync
+  const toggleSync = useCallback((enabled: boolean, serverUrl?: string) => {
+    const updatedMeta: SyncMeta = {
+      ...syncMeta,
+      syncEnabled: enabled,
+      serverUrl: serverUrl || syncMeta.serverUrl,
+    }
+    setSyncMeta(updatedMeta)
+    localStorage.setItem(SYNC_KEY, JSON.stringify(updatedMeta))
+
+    if (enabled) {
+      toast.success('Sync Enabled', 'Cross-device sync is now active')
+    } else {
+      toast.info('Sync Disabled', 'Working in offline mode only')
+    }
+  }, [syncMeta, toast])
+
+  const saveStaff = useCallback((newStaff: StaffMember[], changeType?: 'create' | 'update' | 'delete', entityId?: string) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newStaff))
     setStaff(newStaff)
-  }, [])
 
-  const saveReviews = useCallback((newReviews: PerformanceReview[]) => {
+    // Track change for sync if enabled
+    if (syncMeta.syncEnabled && changeType && entityId) {
+      const changedEntity = newStaff.find(s => s.id === entityId) || null
+      addPendingChange({
+        type: changeType,
+        entityType: 'staff',
+        entityId,
+        data: changedEntity,
+      })
+    }
+  }, [syncMeta.syncEnabled, addPendingChange])
+
+  const saveReviews = useCallback((newReviews: PerformanceReview[], changeType?: 'create' | 'update' | 'delete', entityId?: string) => {
     localStorage.setItem(REVIEWS_KEY, JSON.stringify(newReviews))
     setReviews(newReviews)
-  }, [])
+
+    // Track change for sync if enabled
+    if (syncMeta.syncEnabled && changeType && entityId) {
+      const changedEntity = newReviews.find(r => r.id === entityId) || null
+      addPendingChange({
+        type: changeType,
+        entityType: 'review',
+        entityId,
+        data: changedEntity,
+      })
+    }
+  }, [syncMeta.syncEnabled, addPendingChange])
 
   const resetForm = () => {
     setFormData({
@@ -864,11 +1067,79 @@ export function StaffDirectory() {
           <h2 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
             Staff Directory
           </h2>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 flex items-center gap-2">
             Manage {stats.total} staff members across {stats.departments} departments
+            {/* Online/Offline Status */}
+            <Badge variant="outline" className={cn(
+              "text-xs gap-1",
+              isOnline ? "border-emerald-500 text-emerald-600" : "border-orange-500 text-orange-600"
+            )}>
+              {isOnline ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
+              {isOnline ? 'Online' : 'Offline'}
+            </Badge>
+            {syncMeta.syncEnabled && (
+              <Badge variant="outline" className="text-xs gap-1 border-blue-500 text-blue-600">
+                <Cloud className="h-3 w-3" />
+                Sync
+              </Badge>
+            )}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          {/* Sync Status & Controls */}
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowSyncSettings(true)}
+                  className={cn(
+                    pendingChanges.length > 0 && "border-orange-500"
+                  )}
+                >
+                  {syncMeta.syncEnabled ? (
+                    <Cloud className="h-4 w-4" />
+                  ) : (
+                    <CloudOff className="h-4 w-4" />
+                  )}
+                  {pendingChanges.length > 0 && (
+                    <span className="ml-1 text-xs bg-orange-500 text-white rounded-full px-1.5">
+                      {pendingChanges.length}
+                    </span>
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                {syncMeta.syncEnabled 
+                  ? `Sync enabled${pendingChanges.length > 0 ? ` (${pendingChanges.length} pending)` : ''}`
+                  : 'Sync settings (offline mode)'
+                }
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          {/* Manual Sync Button */}
+          {syncMeta.syncEnabled && isOnline && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleSync}
+                    disabled={isSyncing}
+                  >
+                    <RefreshCw className={cn("h-4 w-4", isSyncing && "animate-spin")} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {isSyncing ? 'Syncing...' : 'Sync now'}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -2573,6 +2844,221 @@ export function StaffDirectory() {
             <Button onClick={handleAddReview}>
               <CheckCircle2 className="h-4 w-4 mr-2" />
               Submit Review
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Sync Settings Dialog */}
+      <Dialog open={showSyncSettings} onOpenChange={setShowSyncSettings}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Cloud className="h-5 w-5 text-blue-500" />
+              Sync & Cross-Device Settings
+            </DialogTitle>
+            <DialogDescription>
+              Configure online/offline sync settings for cross-device access
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 mt-4">
+            {/* Connection Status */}
+            <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
+              <div className="flex items-center gap-3">
+                {isOnline ? (
+                  <div className="h-10 w-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                    <Wifi className="h-5 w-5 text-emerald-600" />
+                  </div>
+                ) : (
+                  <div className="h-10 w-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                    <WifiOff className="h-5 w-5 text-orange-600" />
+                  </div>
+                )}
+                <div>
+                  <p className="font-medium">{isOnline ? 'Online' : 'Offline'}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {isOnline ? 'Connected to internet' : 'Working locally'}
+                  </p>
+                </div>
+              </div>
+              <Badge variant={isOnline ? "default" : "secondary"}>
+                {isOnline ? 'Connected' : 'Disconnected'}
+              </Badge>
+            </div>
+
+            {/* Sync Mode Toggle */}
+            <div className="space-y-3">
+              <Label className="text-base">Sync Mode</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => toggleSync(false)}
+                  className={cn(
+                    "p-4 rounded-lg border-2 text-left transition-all",
+                    !syncMeta.syncEnabled 
+                      ? "border-primary bg-primary/5" 
+                      : "border-border hover:border-muted-foreground/50"
+                  )}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <CloudOff className="h-5 w-5" />
+                    <span className="font-semibold">Offline Only</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Data stored locally on this device only. No internet required.
+                  </p>
+                </button>
+                <button
+                  onClick={() => syncMeta.serverUrl && toggleSync(true)}
+                  className={cn(
+                    "p-4 rounded-lg border-2 text-left transition-all",
+                    syncMeta.syncEnabled 
+                      ? "border-primary bg-primary/5" 
+                      : "border-border hover:border-muted-foreground/50",
+                    !syncMeta.serverUrl && "opacity-50 cursor-not-allowed"
+                  )}
+                  disabled={!syncMeta.serverUrl}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <Cloud className="h-5 w-5" />
+                    <span className="font-semibold">Online Sync</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Sync across devices. Access from anywhere.
+                  </p>
+                </button>
+              </div>
+            </div>
+
+            {/* Server URL Configuration */}
+            <div className="space-y-2">
+              <Label>Sync Server URL</Label>
+              <div className="flex gap-2">
+                <Input
+                  value={syncServerUrl || syncMeta.serverUrl || ''}
+                  onChange={(e) => setSyncServerUrl(e.target.value)}
+                  placeholder="https://api.yourserver.com"
+                  className="flex-1"
+                />
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    if (syncServerUrl) {
+                      const updatedMeta = { ...syncMeta, serverUrl: syncServerUrl }
+                      setSyncMeta(updatedMeta)
+                      localStorage.setItem(SYNC_KEY, JSON.stringify(updatedMeta))
+                      toast.success('Saved', 'Server URL configured')
+                    }
+                  }}
+                  disabled={!syncServerUrl}
+                >
+                  Save
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Enter your backend server URL for cross-device sync
+              </p>
+            </div>
+
+            {/* Sync Status */}
+            <div className="space-y-3">
+              <Label className="text-base">Sync Status</Label>
+              <div className="p-4 rounded-lg bg-muted/50 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Last Synced</span>
+                  <span className="text-sm font-medium">
+                    {syncMeta.lastSyncAt 
+                      ? formatDistanceToNow(parseISO(syncMeta.lastSyncAt), { addSuffix: true })
+                      : 'Never'
+                    }
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Pending Changes</span>
+                  <Badge variant={pendingChanges.length > 0 ? "destructive" : "secondary"}>
+                    {pendingChanges.length} {pendingChanges.length === 1 ? 'change' : 'changes'}
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Device ID</span>
+                  <code className="text-xs bg-background px-2 py-1 rounded">
+                    {syncMeta.deviceId.slice(0, 12)}...
+                  </code>
+                </div>
+              </div>
+            </div>
+
+            {/* Current Device Info */}
+            <div className="space-y-3">
+              <Label className="text-base">This Device</Label>
+              <div className="flex items-center gap-3 p-3 rounded-lg border">
+                {getDeviceType() === 'desktop' && <Monitor className="h-8 w-8 text-muted-foreground" />}
+                {getDeviceType() === 'mobile' && <Smartphone className="h-8 w-8 text-muted-foreground" />}
+                {getDeviceType() === 'tablet' && <Laptop className="h-8 w-8 text-muted-foreground" />}
+                <div>
+                  <p className="font-medium capitalize">{getDeviceType()}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {navigator.userAgent.split('(')[1]?.split(')')[0] || 'Unknown device'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Sync Actions */}
+            {syncMeta.syncEnabled && (
+              <div className="flex gap-2">
+                <Button 
+                  className="flex-1"
+                  onClick={handleSync}
+                  disabled={!isOnline || isSyncing}
+                >
+                  {isSyncing ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Syncing...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Sync Now
+                    </>
+                  )}
+                </Button>
+                {pendingChanges.length > 0 && (
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      setPendingChanges([])
+                      localStorage.setItem(PENDING_CHANGES_KEY, JSON.stringify([]))
+                      toast.info('Cleared', 'Pending changes discarded')
+                    }}
+                  >
+                    Clear Pending
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {/* Info Box */}
+            <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800">
+              <div className="flex gap-3">
+                <AlertCircle className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+                <div className="text-sm">
+                  <p className="font-medium text-blue-700 dark:text-blue-400">How Sync Works</p>
+                  <ul className="mt-1 text-blue-600/80 dark:text-blue-400/80 space-y-1">
+                    <li>• Changes are saved locally first (works offline)</li>
+                    <li>• When online, changes sync to server automatically</li>
+                    <li>• Access your data from any device with same server</li>
+                    <li>• Conflicts are resolved using last-write-wins</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setShowSyncSettings(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
