@@ -28,6 +28,9 @@ import {
   Surgery,
   Feedback,
   Equipment,
+  Pharmacy,
+  Emergency,
+  Messages,
 } from '@/pages'
 
 function AppContent() {
@@ -61,6 +64,9 @@ function AppContent() {
           <Route path="/surgery" element={<PageErrorBoundary><Surgery /></PageErrorBoundary>} />
           <Route path="/feedback" element={<PageErrorBoundary><Feedback /></PageErrorBoundary>} />
           <Route path="/equipment" element={<PageErrorBoundary><Equipment /></PageErrorBoundary>} />
+          <Route path="/pharmacy" element={<PageErrorBoundary><Pharmacy /></PageErrorBoundary>} />
+          <Route path="/emergency" element={<PageErrorBoundary><Emergency /></PageErrorBoundary>} />
+          <Route path="/messages" element={<PageErrorBoundary><Messages /></PageErrorBoundary>} />
           <Route path="/settings" element={<PageErrorBoundary><Settings /></PageErrorBoundary>} />
         </Routes>
       </Layout>
